@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- login -->
+    <div id="loginContainer">
+      <h2>Log In</h2>
+      <form id="loginForm">
+        <input name="email" type="email" placeholder="Email" required />
+        <input name="password" type="password" placeholder="Password" required />
+        <button type="submit">Log In</button>
+      </form>
+      <p id="loginStatus"></p>
+    </div>
+
+    <!-- game section -->
     <div class="game-container">
       <h1>The Honeymaker</h1>
       <div class="score-container">
@@ -19,6 +31,19 @@
         <button id="startButton">Start Game</button>
       </div>
     </div>
+
+    <!-- leaderboard.html -->
+    <table id="leaderboard">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
     <div id="gameOverModal" class="modal">
       <div class="modal-content">
         <h2>Game Over</h2>
@@ -26,6 +51,8 @@
         <button id="closeModal">Play Again</button>
       </div>
     </div>
+    <!-- modal, scripts, etc -->
     <script src="game.js"></script>
+    <script src="auth.js"></script>
   </body>
 </html>
