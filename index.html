@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Honeymaker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>The Honeymaker</h1>
+      <div class="score-container">
+        Pots of Honey:
+        <span id="score">0</span>
+      </div>
+      <canvas id="gameCanvas"></canvas>
+      <div class="controls">
+        <p>Use arrow keys to move the snake</p>
+        <button id="startButton">Start Game</button>
+      </div>
+    </div>
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+        <h2>Game Over</h2>
+        <p id="finalScore">You made 0 pots of honey!</p>
+        <button id="closeModal">Play Again</button>
+      </div>
+    </div>
+    <script src="game.js"></script>
+  </body>
+</html>
