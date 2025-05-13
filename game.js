@@ -1,33 +1,39 @@
 // game.js
+import { API_BASE } from "./config.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
-
-const API_BASE = "http://localhost:3000"; // change this to your deployed API URL
 
 // ─── API Helper ───────────────────────────────────────────────────────────────
 
 async function submitScore(scoreValue) {
-  const token = localStorage.getItem("snakeToken");
-  const resp = await fetch(`${API_BASE}/scores.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ value: scoreValue }),
-  });
+  try {
+    const resp = await fetch(`${API_BASE}/scores`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Important: needed for cookies
+      body: JSON.stringify({ score: { value: scoreValue } }),
+    });
 
-  if (!resp.ok) {
-    console.error("Failed to save score", await resp.text());
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      console.error("Failed to save score", data.error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving score:", error);
+    return null;
   }
-  return resp.json();
 }
 
 // ─── Canvas Setup ────────────────────────────────────────────────────────────
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const startButton = document.getElementById("startButton");
 const scoreElement = document.getElementById("score");
 const modal = document.getElementById("gameOverModal");
 const finalScoreElement = document.getElementById("finalScore");
@@ -57,23 +63,29 @@ flowerColors.forEach((color) => {
 
 // ─── Game State ──────────────────────────────────────────────────────────────
 
-let snake,
-  food,
-  dx,
-  dy,
-  score,
-  gameInterval,
+let snake = null,
+  food = null,
+  dx = 0,
+  dy = 0,
+  score = 0,
+  gameInterval = null,
   gameSpeed = 200,
-  gameRunning,
-  gameStarted;
+  gameRunning = false,
+  gameStarted = false;
 
 // ─── Image Loader ────────────────────────────────────────────────────────────
 
 let loadedImages = 0,
-  totalImages = Object.keys(flowerImages).length + 2;
+  totalImages = Object.keys(flowerImages).length + 2,
+  allImagesLoaded = false;
+
 function checkAllImagesLoaded() {
   loadedImages++;
-  if (loadedImages === totalImages) draw();
+  if (loadedImages === totalImages) {
+    allImagesLoaded = true;
+    initGame();
+    draw();
+  }
 }
 
 Object.values(flowerImages).forEach((img) => (img.onload = checkAllImagesLoaded));
@@ -83,19 +95,15 @@ potImage.onload = checkAllImagesLoaded;
 // ─── Game Initialization ──────────────────────────────────────────────────────
 
 function initGame() {
-  snake = [{ x: 7, y: 8 }];
-  food = { x: 12, y: 8, color: "pink" };
+  // Place bee in the middle of the board
+  snake = [{ x: Math.floor(gridWidth / 2), y: Math.floor(gridHeight / 2) }];
+  food = null; // Don't generate food until first move
   dx = dy = 0;
   score = 0;
   scoreElement.textContent = score;
   gameRunning = true;
   gameStarted = false;
-}
-
-function startGame() {
-  clearInterval(gameInterval);
-  initGame();
-  startButton.textContent = "Restart";
+  draw(); // Draw initial state
 }
 
 // ─── Food Generation ─────────────────────────────────────────────────────────
@@ -127,15 +135,22 @@ function drawHoneyPot(x, y) {
 // ─── Main Draw ──────────────────────────────────────────────────────────────
 
 function draw() {
-  ctx.fillStyle = "#B2E6FF";
+  if (!allImagesLoaded || !snake) return;
+
+  // Clear the canvas
+  ctx.fillStyle = "#d7eeee";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Draw snake (bee and honey pots)
   snake.forEach((seg, i) => {
     if (i === 0) drawBee(seg.x, seg.y);
     else drawHoneyPot(seg.x, seg.y);
   });
 
-  drawFlower(food.x, food.y, food.color);
+  // Draw food (flower) if it exists
+  if (food) {
+    drawFlower(food.x, food.y, food.color);
+  }
 }
 
 // ─── Game Update ────────────────────────────────────────────────────────────
@@ -174,7 +189,21 @@ function gameLoop() {
 }
 
 function handleKeyPress(e) {
-  if (!gameRunning) return;
+  // Check if it's an arrow key
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    return;
+  }
+
+  // Prevent default browser scrolling behavior for arrow keys
+  e.preventDefault();
+
+  // If game is over, restart on any arrow key
+  if (!gameRunning) {
+    modal.classList.remove("show");
+    initGame();
+    return;
+  }
+
   let [newDx, newDy] = [dx, dy];
 
   switch (e.key) {
@@ -190,12 +219,12 @@ function handleKeyPress(e) {
     case "ArrowRight":
       if (dx !== -1) [newDx, newDy] = [1, 0];
       break;
-    default:
-      return;
   }
 
+  // Generate first food and start game loop on first valid key press
   if (!gameStarted) {
     gameStarted = true;
+    food = generateFood();
     gameInterval = setInterval(gameLoop, gameSpeed);
   }
   [dx, dy] = [newDx, newDy];
@@ -206,11 +235,10 @@ function handleKeyPress(e) {
 function gameOver() {
   gameRunning = false;
   clearInterval(gameInterval);
-  startButton.textContent = "Play Again";
   finalScoreElement.textContent = `You created ${score} pots of honey!`;
 
   // Send final score to backend
-  submitScore(score).catch(console.error);
+  submitScore(score);
 
   modal.classList.add("show");
 }
@@ -219,13 +247,19 @@ function gameOver() {
 
 function closeModal() {
   modal.classList.remove("show");
-  startGame();
+  initGame();
+}
+
+function justCloseModal() {
+  modal.classList.remove("show");
 }
 
 // ─── Event Listeners & Initial Draw ────────────────────────────────────────
 
 document.addEventListener("keydown", handleKeyPress);
-startButton.addEventListener("click", startGame);
 closeModalButton.addEventListener("click", closeModal);
+document.getElementById("closeGameOverModal").addEventListener("click", justCloseModal);
 
+// Initialize game on page load
+initGame();
 draw();

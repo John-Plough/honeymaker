@@ -7,19 +7,116 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- login -->
-    <div id="loginContainer">
-      <h2>Log In</h2>
-      <form id="loginForm">
-        <input name="email" type="email" placeholder="Email" required />
-        <input name="password" type="password" placeholder="Password" required />
-        <button type="submit">Log In</button>
-      </form>
-      <p id="loginStatus"></p>
+    <!-- splash container -->
+    <div id="splashContainer">
+      <!-- auth forms container (hidden by default) -->
+      <div id="authContainer" class="hidden">
+        <!-- login -->
+        <div id="loginContainer" class="hidden">
+          <h2>Log In</h2>
+          <form id="loginFormSplash">
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <button type="submit">Log In</button>
+          </form>
+          <p id="loginStatus"></p>
+        </div>
+
+        <!-- signup -->
+        <div id="signupContainer" class="hidden">
+          <h2>Sign Up</h2>
+          <form id="signupFormSplash">
+            <input name="username" type="text" placeholder="Username" required />
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <input name="password_confirmation" type="password" placeholder="Confirm Password" required />
+            <button type="submit">Sign Up</button>
+          </form>
+          <p id="signupStatus"></p>
+        </div>
+      </div>
     </div>
 
-    <!-- game section -->
-    <div class="game-container">
+    <!-- header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="auth-buttons">
+          <!-- Logged out state -->
+          <div class="logged-out-buttons">
+            <button class="login">Log In</button>
+            <button class="signup">Sign Up</button>
+          </div>
+          <!-- Logged in state -->
+          <div class="logged-in-buttons hidden">
+            <div class="header-left">
+              <button id="personalScores">My Top Scores</button>
+              <button id="globalScores">All-Time Best</button>
+            </div>
+            <div class="header-right">
+              <span class="welcome-message">
+                <span class="username"></span>
+                the bee!
+              </span>
+              <button class="logout">Log Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- game section (hidden initially) -->
+    <div class="game-container hidden">
+      <div class="honeycomb-bg">
+        <!-- Generate 48 hexagons (6 rows x 8 columns) -->
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+        <div class="honeycomb"></div>
+      </div>
       <h1>The Honeymaker</h1>
       <div class="score-container">
         Pots of Honey:
@@ -27,13 +124,14 @@
       </div>
       <canvas id="gameCanvas"></canvas>
       <div class="controls">
-        <p>Use arrow keys to move the snake</p>
-        <button id="startButton">Start Game</button>
+        <p>Press the arrow keys to buzz to each flower and make some honey.</p>
+        <p>The more flowers you reach, the more honey you make.</p>
+        <p>But beware—bump into a honeypot and you'll get stuck!</p>
       </div>
     </div>
 
-    <!-- leaderboard.html -->
-    <table id="leaderboard">
+    <!-- leaderboard (hidden initially) -->
+    <table id="leaderboard" class="hidden">
       <thead>
         <tr>
           <th>#</th>
@@ -48,11 +146,71 @@
       <div class="modal-content">
         <h2>Game Over</h2>
         <p id="finalScore">You made 0 pots of honey!</p>
-        <button id="closeModal">Play Again</button>
+        <div class="modal-buttons">
+          <button id="closeModal">Play Again</button>
+          <button id="closeGameOverModal">Close</button>
+        </div>
       </div>
     </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Log In</h2>
+        <form id="loginFormModal">
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <button type="submit">Log In</button>
+        </form>
+        <p id="loginModalStatus" class="status-message"></p>
+        <button id="closeLoginModal">Close</button>
+      </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Sign Up</h2>
+        <form id="signupFormModal">
+          <input name="username" type="text" placeholder="Username" required />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <input name="password_confirmation" type="password" placeholder="Confirm Password" required />
+          <button type="submit">Sign Up</button>
+        </form>
+        <p id="signupModalStatus" class="status-message"></p>
+        <button id="closeSignupModal">Close</button>
+      </div>
+    </div>
+
+    <!-- scores modal -->
+    <div id="scoresModal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="scoresTitle">Scores</h2>
+        <div class="scores-container">
+          <table id="scoresTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button id="closeScoresModal">Close</button>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="main-footer">
+      <p>&copy; 2025 House of Plough</p>
+    </footer>
+
     <!-- modal, scripts, etc -->
-    <script src="game.js"></script>
-    <script src="auth.js"></script>
+    <script src="game.js" type="module"></script>
+    <script src="auth.js" type="module"></script>
   </body>
 </html>
