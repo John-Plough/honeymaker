@@ -71,7 +71,8 @@ let snake = null,
   gameInterval = null,
   gameSpeed = 200,
   gameRunning = false,
-  gameStarted = false;
+  gameStarted = false,
+  isPaused = false;
 
 // ─── Image Loader ────────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ function initGame() {
   scoreElement.textContent = score;
   gameRunning = true;
   gameStarted = false;
+  isPaused = false; // Reset pause state
   draw(); // Draw initial state
 }
 
@@ -151,6 +153,18 @@ function draw() {
   if (food) {
     drawFlower(food.x, food.y, food.color);
   }
+
+  // Draw pause overlay if game is paused
+  if (isPaused && gameStarted) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Quicksand";
+    ctx.textAlign = "center";
+    ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+    ctx.font = "20px Quicksand";
+    ctx.fillText("Press SPACE to resume", canvas.width / 2, canvas.height / 2 + 40);
+  }
 }
 
 // ─── Game Update ────────────────────────────────────────────────────────────
@@ -189,6 +203,19 @@ function gameLoop() {
 }
 
 function handleKeyPress(e) {
+  // Handle spacebar for pause
+  if (e.code === "Space" && gameStarted && gameRunning) {
+    e.preventDefault(); // Prevent page scrolling
+    isPaused = !isPaused;
+    if (isPaused) {
+      clearInterval(gameInterval);
+    } else {
+      gameInterval = setInterval(gameLoop, gameSpeed);
+    }
+    draw(); // Update display immediately
+    return;
+  }
+
   // Check if it's an arrow key
   if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     return;
@@ -203,6 +230,9 @@ function handleKeyPress(e) {
     initGame();
     return;
   }
+
+  // Don't process movement if game is paused
+  if (isPaused) return;
 
   let [newDx, newDy] = [dx, dy];
 
@@ -259,6 +289,29 @@ function justCloseModal() {
 document.addEventListener("keydown", handleKeyPress);
 closeModalButton.addEventListener("click", closeModal);
 document.getElementById("closeGameOverModal").addEventListener("click", justCloseModal);
+
+// Instructions modal handlers
+const instructionsModal = document.getElementById("instructionsModal");
+const instructionsButton = document.getElementById("instructionsButton");
+const closeInstructionsModal = document.getElementById("closeInstructionsModal");
+
+instructionsButton.addEventListener("click", () => {
+  instructionsModal.classList.remove("hidden");
+  instructionsModal.classList.add("show");
+});
+
+closeInstructionsModal.addEventListener("click", () => {
+  instructionsModal.classList.remove("show");
+  instructionsModal.classList.add("hidden");
+});
+
+// Close instructions modal when clicking outside
+instructionsModal.addEventListener("click", (event) => {
+  if (event.target === instructionsModal) {
+    instructionsModal.classList.remove("show");
+    instructionsModal.classList.add("hidden");
+  }
+});
 
 // Initialize game on page load
 initGame();

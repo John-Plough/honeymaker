@@ -11,6 +11,8 @@ body {
   font-family: "Quicksand", sans-serif;
   min-height: 100vh;
   background-color: #d7eeee;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Footer */
@@ -39,12 +41,13 @@ body {
   padding: 1rem 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .header-content {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1000px; /* Match game container width */
   margin: 0 auto;
-  padding: 0 2rem;
   position: relative;
 }
 
@@ -68,19 +71,30 @@ body {
 .logged-in-buttons {
   display: flex;
   width: 100%;
-  justify-content: space-between;
   align-items: center;
 }
 
 .header-left {
+  width: 200px; /* Fixed width for consistent layout */
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  padding-left: 2rem;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  gap: 4rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .header-right {
+  width: 200px; /* Fixed width for consistent layout */
   display: flex;
   align-items: center;
-  gap: 2rem;
+  justify-content: flex-end;
+  padding-right: 2rem;
 }
 
 .welcome-message {
@@ -89,7 +103,20 @@ body {
   font-weight: 600;
 }
 
-.auth-buttons button {
+.logout-link {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.logout-link:hover {
+  text-decoration: underline;
+}
+
+/* General button styles for all buttons except logout */
+.auth-buttons button:not(.logout) {
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
   font-weight: 700;
@@ -102,14 +129,33 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.auth-buttons button:hover {
+.auth-buttons button:not(.logout):hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
-.auth-buttons button:active {
+.auth-buttons button:not(.logout):active {
   transform: translateY(1px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Specific styles for logout button */
+.auth-buttons .logout {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1.1rem; /* Match welcome message size */
+}
+
+.auth-buttons .logout:hover {
+  transform: none;
+  box-shadow: none;
+  text-decoration: underline;
 }
 
 /* Splash Page */
@@ -203,79 +249,66 @@ body {
 .game-container {
   text-align: center;
   background-color: #fff7df;
-  padding: 2rem;
+  padding: 0.5rem 2rem; /* Reduced top padding from 2rem to 0.5rem */
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 1;
-  margin: 0;
   overflow: hidden;
+  flex: 1;
 }
 
-.honeycomb-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  opacity: 0.15;
-  display: grid;
-  grid-template-columns: repeat(8, 60px);
-  transform: scale(1.5);
-  transform-origin: center;
-}
-
-.honeycomb {
-  width: 60px;
-  height: 60px;
-  background: #cdad42;
-  position: relative;
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  margin: -15px -10px;
-}
-
-.honeycomb:nth-child(even) {
-  margin-top: 15px;
-}
-
-/* Game Canvas */
-#gameCanvas {
-  background-color: #d7eeee;
-  border-radius: 8px;
-  margin: 1rem auto;
-  display: block;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 2;
-}
-
-h1,
-.score-container {
-  position: relative;
-  z-index: 2;
-}
-
-h1 {
+/* Game title */
+.game-container h1 {
   color: #333;
-  margin-bottom: 1rem;
+  margin: 0; /* Removed margin completely */
+  padding: 0.25rem 0; /* Reduced padding */
+  font-size: 1.8rem;
+  position: relative;
+  z-index: 2;
 }
 
-.score-container {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #666;
+/* Score display */
+.score-display {
+  padding: 0.5rem;
+  text-align: center;
+  margin: 0.5rem 0 -0.5rem; /* Moderate negative margin */
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  background-color: rgba(255, 247, 223, 0.8);
+  border-radius: 8px;
 }
 
+.score-label {
+  display: inline;
+}
+
+.score-value {
+  display: inline;
+  font-weight: 700;
+}
+
+/* Controls section */
 .controls {
   position: relative;
   z-index: 2;
-  margin-top: 1rem;
+  background-color: rgba(255, 247, 223, 0.8);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 0;
 }
 
 .controls p {
   color: #666;
+  margin-top: 0.75rem;
   margin-bottom: 0.5rem;
+}
+
+.control-separator {
+  height: 1em;
+  vertical-align: middle;
+  margin: 0 0.5rem;
 }
 
 #startButton {
@@ -479,4 +512,96 @@ table {
   justify-content: center;
   gap: 1rem;
   margin-top: 1rem;
+}
+
+/* Main content area */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem; /* Small gap between header and game */
+}
+
+/* Instructions Button and Modal */
+.instructions-button {
+  margin: 0; /* Remove all margins */
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  background-color: #d7eeee;
+  color: #333;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+}
+
+.instructions-button:hover {
+  background-color: #c5e5e5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.instructions-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.instructions-text {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.instructions-text p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Remove the game layout styles since we're not using them anymore */
+.game-layout {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Header buttons */
+#personalScores,
+#globalScores {
+  width: 120px; /* Reduced from 180px */
+  padding: 0.7rem 0.5rem; /* Reduced horizontal padding */
+  font-size: 1rem;
+  font-weight: 700;
+  background-color: #fff7df;
+  color: #333;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 60px;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Game Canvas */
+#gameCanvas {
+  margin: 0.5rem auto; /* Reduced margin */
+  display: block;
+  background-color: #d7eeee;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.control-separator {
+  height: 1em;
+  vertical-align: middle;
+  margin: 0 0.5rem;
 }

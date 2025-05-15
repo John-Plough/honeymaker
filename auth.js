@@ -109,24 +109,15 @@ function setupLoginForm(formId, statusId) {
 
       const { user } = await resp.json();
       updateHeaderState(user);
-      const successMessage = `Logged in as ${user.email}`;
-
-      if (formId === "loginFormModal") {
-        showStatusMessage(modalStatus, successMessage, "success");
-      }
-      showStatusMessage(statusEl, successMessage, "success");
-
       form.reset();
 
-      // Hide login modal after a short delay
-      setTimeout(() => {
-        const loginModal = document.getElementById("loginModal");
-        if (loginModal) {
-          loginModal.classList.remove("show");
-          loginModal.classList.add("hidden");
-        }
-        showGame();
-      }, 1000);
+      // Immediately hide login modal and show game
+      const loginModal = document.getElementById("loginModal");
+      if (loginModal) {
+        loginModal.classList.remove("show");
+        loginModal.classList.add("hidden");
+      }
+      showGame();
     } catch (err) {
       const errorMessage = "Network error. Please try again.";
       if (formId === "loginFormModal") {

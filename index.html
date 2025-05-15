@@ -49,14 +49,24 @@
           <!-- Logged in state -->
           <div class="logged-in-buttons hidden">
             <div class="header-left">
-              <button id="personalScores">My Top Scores</button>
-              <button id="globalScores">All-Time Best</button>
-            </div>
-            <div class="header-right">
               <span class="welcome-message">
                 <span class="username"></span>
                 the bee!
               </span>
+            </div>
+            <div class="header-center">
+              <button id="personalScores">
+                My
+                <br />
+                Top Scores
+              </button>
+              <button id="globalScores">
+                Global
+                <br />
+                Leaderboard
+              </button>
+            </div>
+            <div class="header-right">
               <button class="logout">Log Out</button>
             </div>
           </div>
@@ -65,73 +75,76 @@
     </header>
 
     <!-- game section (hidden initially) -->
-    <div class="game-container hidden">
-      <div class="honeycomb-bg">
-        <!-- Generate 48 hexagons (6 rows x 8 columns) -->
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
-        <div class="honeycomb"></div>
+    <main>
+      <div class="game-layout">
+        <div class="game-container hidden">
+          <div class="honeycomb-bg">
+            <!-- Generate 48 hexagons (6 rows x 8 columns) -->
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+            <div class="honeycomb"></div>
+          </div>
+          <h1>The Honeymaker</h1>
+          <canvas id="gameCanvas"></canvas>
+          <div class="score-display">
+            <span class="score-label">Honeypots:</span>
+            <span id="score" class="score-value">0</span>
+          </div>
+          <div class="controls">
+            <button id="instructionsButton" class="instructions-button">Instructions</button>
+            <p>
+              START: Press an arrow key
+              <img src="images/blueSmall.png" alt="separator" class="control-separator" />
+              PAUSE: Press the spacebar
+            </p>
+          </div>
+        </div>
       </div>
-      <h1>The Honeymaker</h1>
-      <div class="score-container">
-        Pots of Honey:
-        <span id="score">0</span>
-      </div>
-      <canvas id="gameCanvas"></canvas>
-      <div class="controls">
-        <p>Press the arrow keys to buzz to each flower and make some honey.</p>
-        <p>The more flowers you reach, the more honey you make.</p>
-        <p>But beware—bump into a honeypot and you'll get stuck!</p>
-      </div>
-    </div>
+    </main>
 
     <!-- leaderboard (hidden initially) -->
-    <table id="leaderboard" class="hidden">
+    <!-- <table id="leaderboard" class="hidden">
       <thead>
         <tr>
           <th>#</th>
@@ -140,7 +153,7 @@
         </tr>
       </thead>
       <tbody></tbody>
-    </table>
+    </table> -->
 
     <div id="gameOverModal" class="modal">
       <div class="modal-content">
@@ -201,6 +214,20 @@
           </table>
         </div>
         <button id="closeScoresModal">Close</button>
+      </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>How to Play</h2>
+        <div class="instructions-text">
+          <p>Buzz around to each flower in order to make some honey.</p>
+          <p>The more flowers you visit, the more honey you will make.</p>
+          <p>But beware; bump into a honeypot and you'll get stuck!</p>
+          <p>Bump into a wall and you'll get squashed!</p>
+        </div>
+        <button id="closeInstructionsModal">Close</button>
       </div>
     </div>
 
