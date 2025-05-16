@@ -70,9 +70,62 @@ let snake = null,
   score = 0,
   gameInterval = null,
   gameSpeed = 200,
+  baseSpeed = 200,
   gameRunning = false,
   gameStarted = false,
-  isPaused = false;
+  isPaused = false,
+  canCloseModal = false;
+
+// ─── Audio Setup ──────────────────────────────────────────────────────────────
+
+const backgroundMusic = new Audio("audio/BuzzingDance.mp3");
+backgroundMusic.loop = true; // Make the music loop
+const flowerSound = new Audio("audio/FlowerSound.mp3");
+const gameOverSound = new Audio("audio/GameOverSound.mp3");
+
+// Adjust volume levels
+backgroundMusic.volume = 0.5; // Background music at 50% volume
+flowerSound.volume = 0.2; // Flower sound at 70% volume
+gameOverSound.volume = 0.7; // Game over sound at full volume
+
+// Audio control state
+let isMusicEnabled = true;
+let areSoundEffectsEnabled = true;
+
+// Set up audio control listeners
+document.getElementById("musicToggle").addEventListener("change", (e) => {
+  isMusicEnabled = e.target.checked;
+  if (isMusicEnabled) {
+    if (gameStarted && !isPaused && gameRunning) {
+      backgroundMusic.play();
+    }
+  } else {
+    backgroundMusic.pause();
+  }
+});
+
+document.getElementById("soundEffectsToggle").addEventListener("change", (e) => {
+  areSoundEffectsEnabled = e.target.checked;
+});
+
+// Update existing audio playing functions
+function playBackgroundMusic() {
+  if (isMusicEnabled) {
+    backgroundMusic.play();
+  }
+}
+
+function playFlowerSound() {
+  if (areSoundEffectsEnabled) {
+    flowerSound.play();
+  }
+}
+
+function playGameOverSound() {
+  if (areSoundEffectsEnabled) {
+    gameOverSound.play();
+  }
+}
 
 // ─── Image Loader ────────────────────────────────────────────────────────────
 
@@ -101,12 +154,55 @@ function initGame() {
   food = null; // Don't generate food until first move
   dx = dy = 0;
   score = 0;
-  scoreElement.textContent = score;
+  gameSpeed = baseSpeed;
+
+  // Update score display with username
+  updateScore();
+
   gameRunning = true;
   gameStarted = false;
-  isPaused = false; // Reset pause state
-  draw(); // Draw initial state
+  isPaused = false;
+
+  // Reset audio
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+  backgroundMusic.playbackRate = 1.0;
+
+  draw();
 }
+
+// Update the score display function
+function updateScore() {
+  const usernameDisplay = document.querySelector(".username-display");
+  const usernameElement = document.querySelector(".username");
+
+  // Get the username from the auth element and update display
+  if (usernameDisplay) {
+    let displayName = "Guest";
+    if (usernameElement && usernameElement.textContent.trim()) {
+      displayName = usernameElement.textContent.trim();
+    }
+    usernameDisplay.textContent = displayName;
+  }
+
+  if (scoreElement) {
+    scoreElement.textContent = score;
+  }
+}
+
+// Listen for username updates from auth system
+document.addEventListener("usernameUpdated", (event) => {
+  const usernameDisplay = document.querySelector(".username-display");
+  if (usernameDisplay) {
+    usernameDisplay.textContent = event.detail;
+  }
+});
+
+// Add event listener for auth changes
+document.addEventListener("DOMContentLoaded", () => {
+  // Initial update of the score display
+  updateScore();
+});
 
 // ─── Food Generation ─────────────────────────────────────────────────────────
 
@@ -187,8 +283,23 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 1;
-    scoreElement.textContent = score;
+    updateScore(); // Use the new update function
     food = generateFood();
+    playFlowerSound();
+
+    // Increase speed by 5%
+    gameSpeed = Math.floor(baseSpeed / (1 + score * 0.05));
+
+    // Only increase music speed by 3% after 6 pots
+    if (score >= 6 && isMusicEnabled) {
+      backgroundMusic.playbackRate = 1 + (score - 6) * 0.03;
+    }
+
+    // Update the game interval with new speed
+    if (gameInterval) {
+      clearInterval(gameInterval);
+      gameInterval = setInterval(gameLoop, gameSpeed);
+    }
   } else {
     snake.pop();
   }
@@ -205,14 +316,16 @@ function gameLoop() {
 function handleKeyPress(e) {
   // Handle spacebar for pause
   if (e.code === "Space" && gameStarted && gameRunning) {
-    e.preventDefault(); // Prevent page scrolling
+    e.preventDefault();
     isPaused = !isPaused;
     if (isPaused) {
       clearInterval(gameInterval);
+      backgroundMusic.pause(); // Pause music when game is paused
     } else {
       gameInterval = setInterval(gameLoop, gameSpeed);
+      playBackgroundMusic(); // Use the new function instead of direct play
     }
-    draw(); // Update display immediately
+    draw();
     return;
   }
 
@@ -224,10 +337,12 @@ function handleKeyPress(e) {
   // Prevent default browser scrolling behavior for arrow keys
   e.preventDefault();
 
-  // If game is over, restart on any arrow key
+  // If game is over, only restart if modal can be closed
   if (!gameRunning) {
-    modal.classList.remove("show");
-    initGame();
+    if (canCloseModal) {
+      modal.classList.remove("show");
+      initGame();
+    }
     return;
   }
 
@@ -252,10 +367,11 @@ function handleKeyPress(e) {
   }
 
   // Generate first food and start game loop on first valid key press
-  if (!gameStarted) {
+  if (!gameStarted && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     gameStarted = true;
     food = generateFood();
     gameInterval = setInterval(gameLoop, gameSpeed);
+    playBackgroundMusic(); // Use the new function instead of direct play
   }
   [dx, dy] = [newDx, newDy];
 }
@@ -266,21 +382,34 @@ function gameOver() {
   gameRunning = false;
   clearInterval(gameInterval);
   finalScoreElement.textContent = `You created ${score} pots of honey!`;
+  canCloseModal = false;
+
+  // Handle audio
+  backgroundMusic.pause(); // Stop background music
+  backgroundMusic.currentTime = 0; // Reset music to beginning
+  playGameOverSound(); // Use the new function instead of direct play
 
   // Send final score to backend
   submitScore(score);
 
   modal.classList.add("show");
+
+  // Allow modal to be closed after 2 seconds
+  setTimeout(() => {
+    canCloseModal = true;
+  }, 2000);
 }
 
 // ─── Modal Close ────────────────────────────────────────────────────────────
 
 function closeModal() {
+  if (!canCloseModal) return; // Prevent early closing
   modal.classList.remove("show");
   initGame();
 }
 
 function justCloseModal() {
+  if (!canCloseModal) return; // Prevent early closing
   modal.classList.remove("show");
 }
 

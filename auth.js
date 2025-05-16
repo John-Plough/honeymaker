@@ -27,10 +27,14 @@ function updateHeaderState(user) {
     // Prefer username over email for the welcome message
     const displayName = user.username || user.email.split("@")[0];
     usernameSpan.textContent = displayName;
+    // Dispatch custom event for username change
+    document.dispatchEvent(new CustomEvent("usernameUpdated", { detail: displayName }));
   } else {
     loggedInButtons.classList.add("hidden");
     loggedOutButtons.classList.remove("hidden");
     usernameSpan.textContent = "";
+    // Dispatch custom event for username cleared
+    document.dispatchEvent(new CustomEvent("usernameUpdated", { detail: "Guest" }));
   }
 }
 

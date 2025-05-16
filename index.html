@@ -49,10 +49,25 @@
           <!-- Logged in state -->
           <div class="logged-in-buttons hidden">
             <div class="header-left">
-              <span class="welcome-message">
-                <span class="username"></span>
-                the bee!
-              </span>
+              <span class="username hidden"></span>
+              <div class="audio-controls">
+                <div class="toggle-group">
+                  <div class="toggle-container">
+                    <div class="toggle-label">Game Music</div>
+                    <label class="switch">
+                      <input type="checkbox" id="musicToggle" checked />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                  <div class="toggle-container">
+                    <div class="toggle-label">Game Sounds</div>
+                    <label class="switch">
+                      <input type="checkbox" id="soundEffectsToggle" checked />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="header-center">
               <button id="personalScores">
@@ -118,18 +133,14 @@
             <div class="honeycomb"></div>
             <div class="honeycomb"></div>
             <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
-            <div class="honeycomb"></div>
           </div>
           <h1>The Honeymaker</h1>
           <canvas id="gameCanvas"></canvas>
           <div class="score-display">
-            <span class="score-label">Honeypots:</span>
-            <span id="score" class="score-value">0</span>
+            <span class="score-label">Total honeypots for</span>
+            <span class="username-display"></span>
+            <span class="score-label">:</span>
+            <span class="score-value">0</span>
           </div>
           <div class="controls">
             <button id="instructionsButton" class="instructions-button">Instructions</button>
