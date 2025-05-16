@@ -6,7 +6,6 @@ const authContainer = document.getElementById("authContainer");
 const loginContainer = document.getElementById("loginContainer");
 const signupContainer = document.getElementById("signupContainer");
 const gameContainer = document.querySelector(".game-container");
-const leaderboard = document.getElementById("leaderboard");
 const loggedOutButtons = document.querySelector(".logged-out-buttons");
 const loggedInButtons = document.querySelector(".logged-in-buttons");
 const usernameSpan = document.querySelector(".username");
@@ -57,7 +56,6 @@ function showSignup() {
 function showGame() {
   document.getElementById("splashContainer").classList.add("hidden");
   gameContainer.classList.remove("hidden");
-  leaderboard.classList.remove("hidden");
 }
 
 // Helper function for API calls
@@ -93,7 +91,6 @@ function setupLoginForm(formId, statusId) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const statusEl = document.getElementById(statusId);
-    const modalStatus = document.getElementById("loginModalStatus");
 
     try {
       const resp = await authFetch("/login.json", {
@@ -102,12 +99,7 @@ function setupLoginForm(formId, statusId) {
       });
 
       if (!resp.ok) {
-        const errorMessage = "Email or password not recognized";
-        if (formId === "loginFormModal") {
-          showStatusMessage(modalStatus, errorMessage, "error");
-        } else {
-          showStatusMessage(statusEl, errorMessage, "error");
-        }
+        showStatusMessage(statusEl, "Email or password not recognized", "error");
         return;
       }
 
@@ -123,12 +115,7 @@ function setupLoginForm(formId, statusId) {
       }
       showGame();
     } catch (err) {
-      const errorMessage = "Network error. Please try again.";
-      if (formId === "loginFormModal") {
-        showStatusMessage(modalStatus, errorMessage, "error");
-      } else {
-        showStatusMessage(statusEl, errorMessage, "error");
-      }
+      showStatusMessage(statusEl, "Network error. Please try again.", "error");
       console.error("Login error:", err);
     }
   });
@@ -142,16 +129,10 @@ function setupSignupForm(formId, statusId) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const statusEl = document.getElementById(statusId);
-    const modalStatus = document.getElementById("signupModalStatus");
 
     // Validate passwords match
     if (form.password.value !== form.password_confirmation.value) {
-      const errorMessage = "Passwords don't match";
-      if (formId === "signupFormModal") {
-        showStatusMessage(modalStatus, errorMessage, "error");
-      } else {
-        showStatusMessage(statusEl, errorMessage, "error");
-      }
+      showStatusMessage(statusEl, "Passwords don't match", "error");
       return;
     }
 
@@ -166,11 +147,7 @@ function setupSignupForm(formId, statusId) {
       if (!resp.ok) {
         const data = await resp.json();
         const errorMessage = data.errors ? data.errors.join(", ") : "Signup failed";
-        if (formId === "signupFormModal") {
-          showStatusMessage(modalStatus, errorMessage, "error");
-        } else {
-          showStatusMessage(statusEl, errorMessage, "error");
-        }
+        showStatusMessage(statusEl, errorMessage, "error");
         return;
       }
 
@@ -181,24 +158,14 @@ function setupSignupForm(formId, statusId) {
       });
 
       if (!loginResp.ok) {
-        const successMessage = "Account created! Please log in.";
-        if (formId === "signupFormModal") {
-          showStatusMessage(modalStatus, successMessage, "success");
-        } else {
-          showStatusMessage(statusEl, successMessage, "success");
-        }
+        showStatusMessage(statusEl, "Account created! Please log in.", "success");
         setTimeout(() => showLogin(), 1000);
         return;
       }
 
       const { user } = await loginResp.json();
       updateHeaderState(user);
-      const successMessage = `Welcome ${user.email}! Account created and logged in.`;
-      if (formId === "signupFormModal") {
-        showStatusMessage(modalStatus, successMessage, "success");
-      } else {
-        showStatusMessage(statusEl, successMessage, "success");
-      }
+      showStatusMessage(statusEl, `Welcome ${user.email}! Account created and logged in.`, "success");
       form.reset();
 
       // Show game after successful signup and login
@@ -217,12 +184,7 @@ function setupSignupForm(formId, statusId) {
         showGame();
       }, 1000);
     } catch (err) {
-      const errorMessage = "Network error. Please try again.";
-      if (formId === "signupFormModal") {
-        showStatusMessage(modalStatus, errorMessage, "error");
-      } else {
-        showStatusMessage(statusEl, errorMessage, "error");
-      }
+      showStatusMessage(statusEl, "Network error. Please try again.", "error");
       console.error("Signup error:", err);
     }
   });
@@ -240,7 +202,6 @@ async function handleLogout() {
       updateHeaderState(null);
       // Hide game and show splash screen
       gameContainer.classList.add("hidden");
-      leaderboard.classList.add("hidden");
       document.getElementById("splashContainer").classList.remove("hidden");
       loggedOutButtons.classList.remove("hidden");
       loggedInButtons.classList.add("hidden");
@@ -335,10 +296,8 @@ scoresModal.addEventListener("click", (e) => {
 
 // Setup all forms
 document.addEventListener("DOMContentLoaded", () => {
-  setupLoginForm("loginFormSplash", "loginStatus");
-  setupLoginForm("loginFormModal", "loginStatus");
-  setupSignupForm("signupFormSplash", "signupStatus");
-  setupSignupForm("signupFormModal", "signupStatus");
+  setupLoginForm("loginFormModal", "loginModalStatus");
+  setupSignupForm("signupFormModal", "signupModalStatus");
 
   // Modal handlers
   const loginButton = document.querySelector(".auth-buttons .login");

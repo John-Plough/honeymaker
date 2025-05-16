@@ -97,24 +97,6 @@ body {
   padding-right: 2rem;
 }
 
-.welcome-message {
-  font-size: 1.1rem;
-  color: #333;
-  font-weight: 600;
-}
-
-.logout-link {
-  color: #333;
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
-.logout-link:hover {
-  text-decoration: underline;
-}
-
 /* General button styles for all buttons except logout */
 .auth-buttons button:not(.logout) {
   padding: 0.7rem 1.5rem;
@@ -307,33 +289,9 @@ body {
 }
 
 .control-separator {
-  height: 1em;
+  height: 2em;
   vertical-align: middle;
   margin: 0 0.5rem;
-}
-
-#startButton {
-  padding: 0.8rem 2rem;
-  font-size: 1.1rem;
-  background-color: #b2e6ff; /* Light sky blue - matching canvas */
-  color: black;
-  border: 2px solid #333;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-  transform: translateY(0);
-}
-
-#startButton:hover {
-  background-color: #9cd9ff; /* Slightly darker shade */
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
-
-#startButton:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 /* Modal Styles */
@@ -458,22 +416,6 @@ table {
   background-color: #e8f5e9;
   color: #2e7d32;
   border: 1px solid #a5d6a7;
-}
-
-/* Restart Hint */
-.restart-hint {
-  font-size: 1rem;
-  color: #666;
-  margin-top: 1rem;
-  font-style: italic;
-}
-
-/* Keep header fixed only for splash screen */
-#splashContainer:not(.hidden) ~ .main-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
 }
 
 /* Scores Modal */
@@ -603,19 +545,13 @@ main {
 
 /* Game Canvas */
 #gameCanvas {
-  margin: 0.5rem auto; /* Reduced margin */
+  margin: 0.5rem auto;
   display: block;
   background-color: #d7eeee;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 2;
-}
-
-.control-separator {
-  height: 1em;
-  vertical-align: middle;
-  margin: 0 0.5rem;
 }
 
 .audio-controls {

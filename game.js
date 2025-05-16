@@ -34,7 +34,6 @@ async function submitScore(scoreValue) {
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const scoreElement = document.getElementById("score");
 const modal = document.getElementById("gameOverModal");
 const finalScoreElement = document.getElementById("finalScore");
 const closeModalButton = document.getElementById("closeModal");
@@ -185,8 +184,9 @@ function updateScore() {
     usernameDisplay.textContent = displayName;
   }
 
-  if (scoreElement) {
-    scoreElement.textContent = score;
+  const scoreValue = document.querySelector(".score-value");
+  if (scoreValue) {
+    scoreValue.textContent = score;
   }
 }
 
@@ -223,9 +223,11 @@ function generateFood() {
 function drawFlower(x, y, color) {
   ctx.drawImage(flowerImages[color], x * tileSize, y * tileSize, tileSize, tileSize);
 }
+
 function drawBee(x, y) {
   ctx.drawImage(beeImage, x * tileSize, y * tileSize, tileSize, tileSize);
 }
+
 function drawHoneyPot(x, y) {
   ctx.drawImage(potImage, x * tileSize, y * tileSize, tileSize, tileSize);
 }
@@ -283,7 +285,7 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 1;
-    updateScore(); // Use the new update function
+    updateScore();
     food = generateFood();
     playFlowerSound();
 
@@ -378,7 +380,7 @@ function handleKeyPress(e) {
 
 // ─── Game Over Handler ─────────────────────────────────────────────────────
 
-function gameOver() {
+async function gameOver() {
   gameRunning = false;
   clearInterval(gameInterval);
   finalScoreElement.textContent = `You created ${score} pots of honey!`;
@@ -390,7 +392,36 @@ function gameOver() {
   playGameOverSound(); // Use the new function instead of direct play
 
   // Send final score to backend
-  submitScore(score);
+  const response = await submitScore(score);
+  console.log("Score submission response:", JSON.stringify(response, null, 2));
+
+  // Get global scores to determine rank
+  try {
+    const globalResponse = await fetch(`${API_BASE}/scores/global`, {
+      credentials: "include",
+    });
+
+    if (globalResponse.ok) {
+      const globalScores = await globalResponse.json();
+      // Find the rank of the current score
+      const currentScoreId = response.id;
+      const rank = globalScores.findIndex((s) => s.id === currentScoreId) + 1;
+
+      console.log("Current score rank:", rank);
+
+      if (rank > 0 && rank <= 6) {
+        // Create and add the rank message
+        const rankMessage = document.createElement("p");
+        rankMessage.textContent = `Congratulations! You are now #${rank} on the global leaderboard.`;
+        rankMessage.style.color = "#2e7d32"; // Success green color
+        rankMessage.style.marginTop = "1rem";
+        rankMessage.style.fontWeight = "600";
+        finalScoreElement.insertAdjacentElement("afterend", rankMessage);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching global scores:", error);
+  }
 
   modal.classList.add("show");
 
@@ -402,22 +433,19 @@ function gameOver() {
 
 // ─── Modal Close ────────────────────────────────────────────────────────────
 
-function closeModal() {
+function closeModal(shouldRestart = false) {
   if (!canCloseModal) return; // Prevent early closing
   modal.classList.remove("show");
-  initGame();
-}
-
-function justCloseModal() {
-  if (!canCloseModal) return; // Prevent early closing
-  modal.classList.remove("show");
+  if (shouldRestart) {
+    initGame();
+  }
 }
 
 // ─── Event Listeners & Initial Draw ────────────────────────────────────────
 
 document.addEventListener("keydown", handleKeyPress);
-closeModalButton.addEventListener("click", closeModal);
-document.getElementById("closeGameOverModal").addEventListener("click", justCloseModal);
+closeModalButton.addEventListener("click", () => closeModal(true));
+document.getElementById("closeGameOverModal").addEventListener("click", () => closeModal(false));
 
 // Instructions modal handlers
 const instructionsModal = document.getElementById("instructionsModal");
