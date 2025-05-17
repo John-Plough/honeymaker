@@ -5,14 +5,24 @@ import { API_BASE } from "./config.js";
 
 // ─── API Helper ───────────────────────────────────────────────────────────────
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
 async function submitScore(scoreValue) {
   try {
+    const csrfToken = getCookie("CSRF-TOKEN");
+    const headers = {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    };
+
     const resp = await fetch(`${API_BASE}/scores`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include", // Important: needed for cookies
+      headers: headers,
+      credentials: "include",
       body: JSON.stringify({ score: { value: scoreValue } }),
     });
 
@@ -147,7 +157,7 @@ potImage.onload = checkAllImagesLoaded;
 
 // ─── Game Initialization ──────────────────────────────────────────────────────
 
-function initGame() {
+export function initGame() {
   // Place bee in the middle of the board
   snake = [{ x: Math.floor(gridWidth / 2), y: Math.floor(gridHeight / 2) }];
   food = null; // Don't generate food until first move
@@ -397,8 +407,15 @@ async function gameOver() {
 
   // Get global scores to determine rank
   try {
+    const token = localStorage.getItem("token");
+    const headers = {};
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const globalResponse = await fetch(`${API_BASE}/scores/global`, {
-      credentials: "include",
+      headers: headers,
     });
 
     if (globalResponse.ok) {

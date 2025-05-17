@@ -1,5 +1,6 @@
 // auth.js
 import { API_BASE } from "./config.js";
+import { initGame } from "./game.js";
 
 // UI Elements
 const authContainer = document.getElementById("authContainer");
@@ -60,13 +61,26 @@ function showGame() {
 
 // Helper function for API calls
 async function authFetch(endpoint, data) {
+  const csrfToken = getCookie("CSRF-TOKEN");
+  const headers = {
+    "Content-Type": "application/json",
+    "X-CSRF-Token": csrfToken,
+  };
+
   const resp = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers,
     credentials: "include",
     body: JSON.stringify(data),
   });
   return resp;
+}
+
+// Helper function to get cookie value
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
 // Helper function to show status message
@@ -114,6 +128,10 @@ function setupLoginForm(formId, statusId) {
         loginModal.classList.add("hidden");
       }
       showGame();
+      // Reset game state for new user
+      if (typeof initGame === "function") {
+        initGame();
+      }
     } catch (err) {
       showStatusMessage(statusEl, "Network error. Please try again.", "error");
       console.error("Login error:", err);
@@ -151,38 +169,15 @@ function setupSignupForm(formId, statusId) {
         return;
       }
 
-      // After successful signup, automatically log them in
-      const loginResp = await authFetch("/login.json", {
-        email: form.email.value,
-        password: form.password.value,
-      });
-
-      if (!loginResp.ok) {
-        showStatusMessage(statusEl, "Account created! Please log in.", "success");
-        setTimeout(() => showLogin(), 1000);
-        return;
-      }
-
-      const { user } = await loginResp.json();
+      const { user } = await resp.json();
       updateHeaderState(user);
       showStatusMessage(statusEl, `Welcome ${user.email}! Account created and logged in.`, "success");
       form.reset();
-
-      // Show game after successful signup and login
-      setTimeout(() => {
-        // Hide both signup and login modals
-        const signupModal = document.getElementById("signupModal");
-        const loginModal = document.getElementById("loginModal");
-        if (signupModal) {
-          signupModal.classList.remove("show");
-          signupModal.classList.add("hidden");
-        }
-        if (loginModal) {
-          loginModal.classList.remove("show");
-          loginModal.classList.add("hidden");
-        }
-        showGame();
-      }, 1000);
+      showGame();
+      // Reset game state for new user
+      if (typeof initGame === "function") {
+        initGame();
+      }
     } catch (err) {
       showStatusMessage(statusEl, "Network error. Please try again.", "error");
       console.error("Signup error:", err);
@@ -193,9 +188,13 @@ function setupSignupForm(formId, statusId) {
 // Logout handler
 async function handleLogout() {
   try {
+    const csrfToken = getCookie("CSRF-TOKEN");
     const resp = await fetch(`${API_BASE}/logout.json`, {
       method: "DELETE",
       credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     });
 
     if (resp.ok) {
@@ -239,8 +238,12 @@ const populateScoresTable = (scores) => {
 // Fetch and display personal scores
 const showPersonalScores = async () => {
   try {
+    const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/scores/personal`, {
       credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     });
 
     if (response.ok) {
@@ -260,8 +263,12 @@ const showPersonalScores = async () => {
 // Fetch and display global scores
 const showGlobalScores = async () => {
   try {
+    const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/scores/global`, {
       credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     });
 
     if (response.ok) {
@@ -294,6 +301,38 @@ scoresModal.addEventListener("click", (e) => {
   }
 });
 
+// Add this function before the DOMContentLoaded event listener
+async function checkAuthStatus() {
+  try {
+    const csrfToken = getCookie("CSRF-TOKEN");
+    const response = await fetch(`${API_BASE}/auth/check`, {
+      credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
+    });
+
+    if (response.ok) {
+      const { user } = await response.json();
+      updateHeaderState(user);
+      showGame();
+    } else if (response.status === 401) {
+      // User is not logged in - this is normal, just update UI accordingly
+      updateHeaderState(null);
+      // Don't show game, stay on splash screen
+    } else {
+      console.error("Unexpected error checking auth status:", response.status);
+      updateHeaderState(null);
+    }
+  } catch (error) {
+    // Only log network-level errors
+    if (error.name !== "TypeError") {
+      console.error("Error checking auth status:", error);
+    }
+    updateHeaderState(null);
+  }
+}
+
 // Setup all forms
 document.addEventListener("DOMContentLoaded", () => {
   setupLoginForm("loginFormModal", "loginModalStatus");
@@ -307,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupModal = document.getElementById("signupModal");
   const closeLoginModal = document.getElementById("closeLoginModal");
   const closeSignupModal = document.getElementById("closeSignupModal");
+  const githubLoginButton = document.getElementById("githubLogin");
 
   if (loginButton && loginModal) {
     loginButton.addEventListener("click", () => {
@@ -351,4 +391,82 @@ document.addEventListener("DOMContentLoaded", () => {
       signupModal.classList.add("hidden");
     }
   });
+
+  // Add GitHub login handler
+  if (githubLoginButton) {
+    githubLoginButton.addEventListener("click", async () => {
+      try {
+        // Create a form to submit
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = `${API_BASE}/auth/github`;
+
+        // Add CSRF token
+        const csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "authenticity_token";
+        csrfInput.value = getCookie("CSRF-TOKEN");
+        form.appendChild(csrfInput);
+
+        // Add it to the document body
+        document.body.appendChild(form);
+
+        // Submit the form
+        form.submit();
+
+        // Clean up
+        document.body.removeChild(form);
+      } catch (error) {
+        console.error("GitHub login error:", error);
+      }
+    });
+  }
+
+  // Add Google login handler
+  const googleLoginButton = document.getElementById("googleLogin");
+  if (googleLoginButton) {
+    googleLoginButton.addEventListener("click", async () => {
+      try {
+        // Create a form to submit
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = `${API_BASE}/auth/google_oauth2`;
+
+        // Add CSRF token
+        const csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "authenticity_token";
+        csrfInput.value = getCookie("CSRF-TOKEN");
+        form.appendChild(csrfInput);
+
+        // Add it to the document body
+        document.body.appendChild(form);
+
+        // Submit the form
+        form.submit();
+
+        // Clean up
+        document.body.removeChild(form);
+      } catch (error) {
+        console.error("Google login error:", error);
+      }
+    });
+  }
+
+  // Check for error in URL (from OAuth redirect)
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get("error");
+
+  if (error) {
+    // Handle error
+    const loginStatus = document.getElementById("loginModalStatus");
+    if (loginStatus) {
+      showStatusMessage(loginStatus, error, "error");
+    }
+    // Remove error from URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else {
+    // Check auth status on page load
+    checkAuthStatus();
+  }
 });

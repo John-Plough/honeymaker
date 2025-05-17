@@ -65,7 +65,9 @@ body {
 
 .logged-out-buttons {
   display: flex;
-  gap: 4rem;
+  justify-content: center;
+  gap: 6rem;
+  width: 100%;
 }
 
 .logged-in-buttons {
@@ -109,6 +111,7 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 120px; /* Fixed width for consistency */
 }
 
 .auth-buttons button:not(.logout):hover {
@@ -636,4 +639,88 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+.oauth-buttons {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #b0b0b0; /* Darker color */
+}
+
+.divider span {
+  position: relative;
+  background-color: #d7eeee;
+  padding: 0 0.8rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.github-button {
+  padding: 0.8rem 1.5rem;
+  background-color: white;
+  color: #24292e;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.github-button:hover {
+  background-color: #f6f8fa;
+  border-color: #333; /* Maintain black outline */
+}
+
+.github-icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
+
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: #24292e;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.google-button:hover {
+  background-color: #f6f8fa;
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
 }
