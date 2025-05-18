@@ -1,5 +1,5 @@
 // auth.js
-import { API_BASE, OAUTH_REDIRECT_URI } from "./config.js";
+import { API_BASE } from "./config.js";
 import { initGame } from "./game.js";
 
 // UI Elements
@@ -106,10 +106,6 @@ function setupLoginForm(formId, statusId) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const statusEl = document.getElementById(statusId);
-    if (!statusEl) {
-      console.error(`Status element with id ${statusId} not found`);
-      return;
-    }
 
     try {
       const resp = await authFetch("/login.json", {
@@ -118,9 +114,7 @@ function setupLoginForm(formId, statusId) {
       });
 
       if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({}));
-        const errorMessage = errorData.error || "Invalid email or password";
-        showStatusMessage(statusEl, errorMessage, "error");
+        showStatusMessage(statusEl, "Email or password not recognized", "error");
         return;
       }
 
@@ -140,8 +134,8 @@ function setupLoginForm(formId, statusId) {
         initGame();
       }
     } catch (err) {
-      console.error("Login error:", err);
       showStatusMessage(statusEl, "Network error. Please try again.", "error");
+      console.error("Login error:", err);
     }
   });
 }
@@ -195,48 +189,27 @@ function setupSignupForm(formId, statusId) {
 // Logout handler
 async function handleLogout() {
   try {
-    console.log("Attempting to log out...");
     const csrfToken = getCookie("CSRF-TOKEN");
-    console.log("CSRF Token:", csrfToken); // Debug log
-
-    const resp = await fetch(`${API_BASE}/logout`, {
+    const resp = await fetch(`${API_BASE}/logout.json`, {
       method: "DELETE",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
         "X-CSRF-Token": csrfToken,
       },
     });
 
-    console.log("Logout response:", resp.status);
-
     if (resp.ok) {
-      console.log("Logout successful");
       updateHeaderState(null);
       // Hide game and show splash screen
       gameContainer.classList.add("hidden");
       document.getElementById("splashContainer").classList.remove("hidden");
-      document.querySelector(".main-footer").classList.remove("game-active");
-      // Reset game state
-      if (typeof initGame === "function") {
-        initGame();
-      }
+      loggedOutButtons.classList.remove("hidden");
+      loggedInButtons.classList.add("hidden");
     } else {
-      const errorText = await resp.text();
-      console.error("Logout failed:", errorText);
-      // Even if the server request fails, we'll still log out locally
-      updateHeaderState(null);
-      gameContainer.classList.add("hidden");
-      document.getElementById("splashContainer").classList.remove("hidden");
-      document.querySelector(".main-footer").classList.remove("game-active");
+      console.error("Logout failed:", await resp.text());
     }
   } catch (err) {
     console.error("Logout error:", err);
-    // Even if there's a network error, we'll still log out locally
-    updateHeaderState(null);
-    gameContainer.classList.add("hidden");
-    document.getElementById("splashContainer").classList.remove("hidden");
-    document.querySelector(".main-footer").classList.remove("game-active");
   }
 }
 
@@ -336,7 +309,6 @@ scoresModal.addEventListener("click", (e) => {
 // Add this function before the DOMContentLoaded event listener
 async function checkAuthStatus() {
   try {
-    console.log("Checking auth status...");
     const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/auth/check`, {
       credentials: "include",
@@ -345,18 +317,12 @@ async function checkAuthStatus() {
       },
     });
 
-    console.log("Auth check response status:", response.status);
-    const data = await response.json();
-    console.log("Auth check response data:", data);
-
     if (response.ok) {
-      const { user } = data;
+      const { user } = await response.json();
       updateHeaderState(user);
       showGame();
-      console.log("User authenticated:", user);
     } else if (response.status === 401) {
       // User is not logged in - this is normal, just update UI accordingly
-      console.log("User not authenticated");
       updateHeaderState(null);
       // Don't show game, stay on splash screen and ensure footer is blue
       document.querySelector(".main-footer").classList.remove("game-active");
@@ -440,34 +406,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (githubLoginButton) {
     githubLoginButton.addEventListener("click", async () => {
       try {
-        console.log("Starting GitHub OAuth flow...");
-        console.log("Current URL:", window.location.href);
-
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
         form.action = `${API_BASE}/auth/github`;
-        console.log("Form action URL:", form.action);
 
         // Add CSRF token
         const csrfInput = document.createElement("input");
         csrfInput.type = "hidden";
         csrfInput.name = "authenticity_token";
         csrfInput.value = getCookie("CSRF-TOKEN");
-        console.log("CSRF Token present:", !!csrfInput.value);
         form.appendChild(csrfInput);
-
-        // Add return URL
-        const returnToInput = document.createElement("input");
-        returnToInput.type = "hidden";
-        returnToInput.name = "origin";
-        returnToInput.value = window.location.href;
-        console.log("Return URL:", returnToInput.value);
-        form.appendChild(returnToInput);
 
         // Add it to the document body
         document.body.appendChild(form);
-        console.log("Form added to document, submitting...");
 
         // Submit the form
         form.submit();
@@ -485,31 +437,17 @@ document.addEventListener("DOMContentLoaded", () => {
   if (googleLoginButton) {
     googleLoginButton.addEventListener("click", async () => {
       try {
-        console.log("Starting Google OAuth flow...");
-        console.log("Current URL:", window.location.href);
-        console.log("OAUTH_REDIRECT_URI:", OAUTH_REDIRECT_URI);
-
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
         form.action = `${API_BASE}/auth/google_oauth2`;
-        console.log("Form action URL:", form.action);
 
         // Add CSRF token
         const csrfInput = document.createElement("input");
         csrfInput.type = "hidden";
         csrfInput.name = "authenticity_token";
         csrfInput.value = getCookie("CSRF-TOKEN");
-        console.log("CSRF Token present:", !!csrfInput.value);
         form.appendChild(csrfInput);
-
-        // Add return URL - use OAUTH_REDIRECT_URI instead of window.location.href
-        const returnToInput = document.createElement("input");
-        returnToInput.type = "hidden";
-        returnToInput.name = "origin";
-        returnToInput.value = OAUTH_REDIRECT_URI;
-        console.log("Return URL being sent:", returnToInput.value);
-        form.appendChild(returnToInput);
 
         // Add it to the document body
         document.body.appendChild(form);

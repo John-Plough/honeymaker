@@ -13,16 +13,12 @@ function getCookie(name) {
 
 async function submitScore(scoreValue) {
   try {
-    console.log("Submitting score:", scoreValue);
     const csrfToken = getCookie("CSRF-TOKEN");
-    console.log("CSRF Token:", csrfToken);
-
     const headers = {
       "Content-Type": "application/json",
       "X-CSRF-Token": csrfToken,
     };
 
-    console.log("Making request to:", `${API_BASE}/scores`);
     const resp = await fetch(`${API_BASE}/scores`, {
       method: "POST",
       headers: headers,
@@ -30,9 +26,7 @@ async function submitScore(scoreValue) {
       body: JSON.stringify({ score: { value: scoreValue } }),
     });
 
-    console.log("Response status:", resp.status);
     const data = await resp.json();
-    console.log("Response data:", data);
 
     if (!resp.ok) {
       console.error("Failed to save score", data.error);
@@ -218,17 +212,6 @@ document.addEventListener("usernameUpdated", (event) => {
 document.addEventListener("DOMContentLoaded", () => {
   // Initial update of the score display
   updateScore();
-
-  // Add event listener to play SecretSound when BlueStandalone.png is clicked
-  const separatorImage = document.querySelector(".control-separator");
-  const secretSound = new Audio("audio/SecretSound.mp3");
-  secretSound.volume = 0.3; // Set SecretSound volume to 30%
-
-  if (separatorImage) {
-    separatorImage.addEventListener("click", () => {
-      secretSound.play();
-    });
-  }
 });
 
 // ─── Food Generation ─────────────────────────────────────────────────────────
@@ -441,71 +424,66 @@ async function gameOver() {
   const response = await submitScore(score);
   console.log("Score submission response:", JSON.stringify(response, null, 2));
 
-  // Only proceed with fetching scores if the score was successfully submitted
-  if (response && response.id) {
-    try {
-      const csrfToken = getCookie("CSRF-TOKEN");
+  try {
+    const csrfToken = getCookie("CSRF-TOKEN");
 
-      // Get personal scores to check if this is highest
-      const personalResponse = await fetch(`${API_BASE}/scores/personal`, {
-        credentials: "include",
-        headers: {
-          "X-CSRF-Token": csrfToken,
-        },
-      });
+    // Get personal scores to check if this is highest
+    const personalResponse = await fetch(`${API_BASE}/scores/personal`, {
+      credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
+    });
 
-      if (personalResponse.ok) {
-        const personalScores = await personalResponse.json();
-        console.log("Personal scores:", personalScores);
+    if (personalResponse.ok) {
+      const personalScores = await personalResponse.json();
+      console.log("Personal scores:", personalScores);
 
-        if (personalScores.length > 0) {
-          // Filter out the current score (using the response id) and find the highest previous score
-          const previousScores = personalScores.filter((s) => s.id !== response.id);
-          const highestPreviousScore = previousScores.length > 0 ? Math.max(...previousScores.map((s) => s.value)) : 0;
-          console.log("Highest previous score:", highestPreviousScore);
-          console.log("Current score:", score);
+      if (personalScores.length >= 3) {
+        // Filter out the current score (using the response id) and find the highest previous score
+        const previousScores = personalScores.filter((s) => s.id !== response.id);
+        const highestPreviousScore = Math.max(...previousScores.map((s) => s.value));
+        console.log("Highest previous score:", highestPreviousScore);
+        console.log("Current score:", score);
 
-          // Check if current score is greater than the highest previous score
-          if (score > highestPreviousScore) {
-            const highScoreMessage = document.createElement("p");
-            highScoreMessage.textContent = "That's your highest score ever!";
-            highScoreMessage.style.color = "#2e7d32"; // Success green color
-            highScoreMessage.style.marginTop = "1rem";
-            highScoreMessage.style.fontWeight = "600";
-            modalContent.appendChild(highScoreMessage);
-          }
+        // Check if current score is greater than the highest previous score
+        if (score > highestPreviousScore) {
+          const highScoreMessage = document.createElement("p");
+          highScoreMessage.textContent = "That's your highest score ever!";
+          highScoreMessage.style.color = "#2e7d32"; // Success green color
+          highScoreMessage.style.marginTop = "1rem";
+          highScoreMessage.style.fontWeight = "600";
+          modalContent.appendChild(highScoreMessage);
         }
       }
-
-      // Get global scores to determine rank
-      const globalResponse = await fetch(`${API_BASE}/scores/global`, {
-        credentials: "include",
-        headers: {
-          "X-CSRF-Token": csrfToken,
-        },
-      });
-
-      if (globalResponse.ok) {
-        const globalScores = await globalResponse.json();
-        // Find the rank of the current score
-        const currentScoreId = response.id;
-        const rank = globalScores.findIndex((s) => s.id === currentScoreId) + 1;
-
-        if (rank > 0 && rank <= 6) {
-          // Create and add the rank message
-          const rankMessage = document.createElement("p");
-          rankMessage.textContent = `Congratulations! You are now #${rank} on the global leaderboard.`;
-          rankMessage.style.color = "#2e7d32"; // Success green color
-          rankMessage.style.marginTop = "1rem";
-          rankMessage.style.fontWeight = "600";
-          modalContent.appendChild(rankMessage);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching scores:", error);
     }
-  } else {
-    console.log("Score not submitted - user might not be logged in");
+
+    // Get global scores to determine rank
+    const globalResponse = await fetch(`${API_BASE}/scores/global`, {
+      credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
+    });
+
+    if (globalResponse.ok) {
+      const globalScores = await globalResponse.json();
+      // Find the rank of the current score
+      const currentScoreId = response.id;
+      const rank = globalScores.findIndex((s) => s.id === currentScoreId) + 1;
+
+      if (rank > 0 && rank <= 6) {
+        // Create and add the rank message
+        const rankMessage = document.createElement("p");
+        rankMessage.textContent = `Congratulations! You are now #${rank} on the global leaderboard.`;
+        rankMessage.style.color = "#2e7d32"; // Success green color
+        rankMessage.style.marginTop = "1rem";
+        rankMessage.style.fontWeight = "600";
+        modalContent.appendChild(rankMessage);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching scores:", error);
   }
 
   // Add the buttons container
