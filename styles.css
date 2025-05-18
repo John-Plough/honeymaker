@@ -464,6 +464,27 @@ table {
   margin-top: 1rem;
 }
 
+.modal-buttons button {
+  min-width: 120px;
+  height: 44px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background-color: #fff7df;
+  color: #333;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-buttons button:hover {
+  background-color: #fece59;
+  transform: translateY(-2px);
+}
+
 /* Main content area */
 main {
   flex: 1;

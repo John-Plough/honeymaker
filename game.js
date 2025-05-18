@@ -390,20 +390,62 @@ function handleKeyPress(e) {
 
 // ─── Game Over Handler ─────────────────────────────────────────────────────
 
+async function checkPersonalBest(score) {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const response = await fetch(`${API_BASE}/scores/personal`, {
+      headers: headers,
+    });
+
+    if (response.ok) {
+      const scores = await response.json();
+      // If there are no previous scores, or current score is higher than all previous scores
+      return scores.length === 0 || score > Math.max(...scores.map((s) => s.score));
+    }
+    return false;
+  } catch (error) {
+    console.error("Error checking personal best:", error);
+    return false;
+  }
+}
+
 async function gameOver() {
   gameRunning = false;
   clearInterval(gameInterval);
+
+  // Clear any existing messages from previous games
+  const modalContent = modal.querySelector(".modal-content");
+  const existingMessages = modalContent.querySelectorAll("p:not(#finalScore)");
+  existingMessages.forEach((msg) => msg.remove());
+
   finalScoreElement.textContent = `You created ${score} pots of honey!`;
   canCloseModal = false;
 
   // Handle audio
-  backgroundMusic.pause(); // Stop background music
-  backgroundMusic.currentTime = 0; // Reset music to beginning
-  playGameOverSound(); // Use the new function instead of direct play
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+  playGameOverSound();
 
   // Send final score to backend
   const response = await submitScore(score);
   console.log("Score submission response:", JSON.stringify(response, null, 2));
+
+  // Check if this is a personal best
+  const isPersonalBest = await checkPersonalBest(score);
+  if (isPersonalBest) {
+    const bestScoreMessage = document.createElement("p");
+    bestScoreMessage.textContent = "That's your highest score ever!";
+    bestScoreMessage.style.color = "#2e7d32";
+    bestScoreMessage.style.marginTop = "0.5rem";
+    bestScoreMessage.style.fontWeight = "600";
+    finalScoreElement.insertAdjacentElement("afterend", bestScoreMessage);
+  }
 
   // Get global scores to determine rank
   try {
@@ -420,18 +462,16 @@ async function gameOver() {
 
     if (globalResponse.ok) {
       const globalScores = await globalResponse.json();
-      // Find the rank of the current score
       const currentScoreId = response.id;
       const rank = globalScores.findIndex((s) => s.id === currentScoreId) + 1;
 
       console.log("Current score rank:", rank);
 
       if (rank > 0 && rank <= 6) {
-        // Create and add the rank message
         const rankMessage = document.createElement("p");
         rankMessage.textContent = `Congratulations! You are now #${rank} on the global leaderboard.`;
-        rankMessage.style.color = "#2e7d32"; // Success green color
-        rankMessage.style.marginTop = "1rem";
+        rankMessage.style.color = "#2e7d32";
+        rankMessage.style.marginTop = "0.5rem";
         rankMessage.style.fontWeight = "600";
         finalScoreElement.insertAdjacentElement("afterend", rankMessage);
       }
