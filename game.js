@@ -397,16 +397,27 @@ async function checkPersonalBest(score) {
 
     const headers = {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
 
     const response = await fetch(`${API_BASE}/scores/personal`, {
       headers: headers,
+      credentials: "include",
     });
 
     if (response.ok) {
       const scores = await response.json();
-      // If there are no previous scores, or current score is higher than all previous scores
-      return scores.length === 0 || score > Math.max(...scores.map((s) => s.score));
+      console.log("Personal scores response:", scores);
+
+      // Handle both array of scores and array of score objects
+      const scoreValues = scores.map((s) => (typeof s === "number" ? s : s.value));
+      const highestPreviousScore = scoreValues.length > 0 ? Math.max(...scoreValues) : 0;
+
+      console.log("Current score:", score);
+      console.log("Highest previous score:", highestPreviousScore);
+
+      // Return true if this is the first score or if it's higher than previous scores
+      return scoreValues.length === 0 || score > highestPreviousScore;
     }
     return false;
   } catch (error) {
@@ -437,13 +448,19 @@ async function gameOver() {
   console.log("Score submission response:", JSON.stringify(response, null, 2));
 
   // Check if this is a personal best
+  console.log("Checking for personal best...");
   const isPersonalBest = await checkPersonalBest(score);
+  console.log("Is personal best?", isPersonalBest);
+
   if (isPersonalBest) {
+    console.log("Creating personal best message...");
     const bestScoreMessage = document.createElement("p");
     bestScoreMessage.textContent = "That's your highest score ever!";
     bestScoreMessage.style.color = "#2e7d32";
     bestScoreMessage.style.marginTop = "0.5rem";
     bestScoreMessage.style.fontWeight = "600";
+    bestScoreMessage.id = "personalBestMessage"; // Add an ID for easier debugging
+    console.log("Inserting personal best message after:", finalScoreElement);
     finalScoreElement.insertAdjacentElement("afterend", bestScoreMessage);
   }
 
@@ -458,6 +475,7 @@ async function gameOver() {
 
     const globalResponse = await fetch(`${API_BASE}/scores/global`, {
       headers: headers,
+      credentials: "include",
     });
 
     if (globalResponse.ok) {
@@ -473,6 +491,7 @@ async function gameOver() {
         rankMessage.style.color = "#2e7d32";
         rankMessage.style.marginTop = "0.5rem";
         rankMessage.style.fontWeight = "600";
+        rankMessage.id = "rankMessage"; // Add an ID for easier debugging
         finalScoreElement.insertAdjacentElement("afterend", rankMessage);
       }
     }
