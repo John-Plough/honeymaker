@@ -1,5 +1,5 @@
 // auth.js
-import { API_BASE } from "./config.js";
+import { API_BASE, OAUTH_REDIRECT_URI, isDevelopment } from "./config.js";
 import { initGame } from "./game.js";
 
 // UI Elements
@@ -426,7 +426,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
-        form.action = `${API_BASE}/auth/github`;
+        const baseUrl = isDevelopment ? "http://localhost:3000" : "https://honeymaker-api.onrender.com";
+        form.action = `${baseUrl}/auth/github`;
 
         // Add CSRF token
         const csrfInput = document.createElement("input");
@@ -467,7 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
-        form.action = `${API_BASE}/auth/google_oauth2`;
+        const baseUrl = isDevelopment ? "http://localhost:3000" : "https://honeymaker-api.onrender.com";
+        form.action = `${baseUrl}/auth/google_oauth2`;
 
         // Add CSRF token
         const csrfInput = document.createElement("input");

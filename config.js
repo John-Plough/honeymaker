@@ -7,4 +7,4 @@ const API_BASE = isDevelopment ? "http://localhost:3000" : "https://honeymaker-a
 const OAUTH_REDIRECT_URI = isDevelopment ? "http://localhost:5173" : "https://john-plough.github.io/honeymaker/"; // Production GitHub Pages URL
 
 // Export for use in other files
-export { API_BASE, OAUTH_REDIRECT_URI };
+export { API_BASE, OAUTH_REDIRECT_URI, isDevelopment };
