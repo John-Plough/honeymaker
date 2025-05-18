@@ -418,6 +418,13 @@ document.addEventListener("DOMContentLoaded", () => {
         csrfInput.value = getCookie("CSRF-TOKEN");
         form.appendChild(csrfInput);
 
+        // Add return_to parameter
+        const returnToInput = document.createElement("input");
+        returnToInput.type = "hidden";
+        returnToInput.name = "return_to";
+        returnToInput.value = window.location.href;
+        form.appendChild(returnToInput);
+
         // Add it to the document body
         document.body.appendChild(form);
 
@@ -448,6 +455,13 @@ document.addEventListener("DOMContentLoaded", () => {
         csrfInput.name = "authenticity_token";
         csrfInput.value = getCookie("CSRF-TOKEN");
         form.appendChild(csrfInput);
+
+        // Add return_to parameter
+        const returnToInput = document.createElement("input");
+        returnToInput.type = "hidden";
+        returnToInput.name = "return_to";
+        returnToInput.value = window.location.href;
+        form.appendChild(returnToInput);
 
         // Add it to the document body
         document.body.appendChild(form);
