@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Honeymaker</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="images/AppLogo.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="images/AppLogo.png" />
+    <link rel="apple-touch-icon" href="images/AppLogo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="csrf-token" content="" />
+  </head>
+  <body>
+    <!-- splash container -->
+    <div id="splashContainer">
+      <!-- auth forms container (hidden by default) -->
+      <div id="authContainer" class="hidden">
+        <!-- login -->
+        <div id="loginContainer" class="hidden">
+          <h2>Log In</h2>
+          <form id="loginFormSplash">
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <button type="submit">Log In</button>
+          </form>
+          <p id="loginStatus"></p>
+        </div>
+
+        <!-- signup -->
+        <div id="signupContainer" class="hidden">
+          <h2>Sign Up</h2>
+          <form id="signupFormSplash">
+            <input name="username" type="text" placeholder="Username" required />
+            <input name="email" type="email" placeholder="Email" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <input name="password_confirmation" type="password" placeholder="Confirm Password" required />
+            <button type="submit">Sign Up</button>
+          </form>
+          <p id="signupStatus"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="auth-buttons">
+          <!-- Logged out state -->
+          <div class="logged-out-buttons">
+            <button class="login">Log In</button>
+            <button class="signup">Sign Up</button>
+          </div>
+          <!-- Logged in state -->
+          <div class="logged-in-buttons hidden">
+            <div class="header-left">
+              <span class="username hidden"></span>
+              <div class="audio-controls">
+                <div class="toggle-group">
+                  <div class="toggle-container">
+                    <div class="toggle-label">Game Music</div>
+                    <label class="switch">
+                      <input type="checkbox" id="musicToggle" checked />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                  <div class="toggle-container">
+                    <div class="toggle-label">Game Sounds</div>
+                    <label class="switch">
+                      <input type="checkbox" id="soundEffectsToggle" checked />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="header-center">
+              <button id="personalScores">
+                My
+                <br />
+                Top Scores
+              </button>
+              <button id="globalScores">
+                Global
+                <br />
+                Leaderboard
+              </button>
+            </div>
+            <div class="header-right">
+              <button class="logout">Log Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- game section (hidden initially) -->
+    <main>
+      <div class="game-layout">
+        <div class="game-container hidden">
+          <h1>The Honeymaker</h1>
+          <canvas id="gameCanvas"></canvas>
+          <div class="score-display">
+            <span class="score-label">Total honeypots for</span>
+            <span class="username-display"></span>
+            <span class="score-label">:</span>
+            <span class="score-value">0</span>
+          </div>
+          <div class="controls">
+            <button id="instructionsButton" class="instructions-button">Instructions</button>
+            <p>
+              START: Press an arrow key
+              <img src="images/BlueStandalone.png" alt="separator" class="control-separator" />
+              PAUSE: Press the spacebar
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- leaderboard (hidden initially) -->
+    <!-- <table id="leaderboard" class="hidden">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table> -->
+
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+        <h2>Game Over</h2>
+        <p id="finalScore">You made 0 pots of honey!</p>
+        <div class="modal-buttons">
+          <button id="closeModal">Play Again</button>
+          <button id="closeGameOverModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+      <div class="modal-content">
+        <!-- <h2>Log In</h2> -->
+        <form id="loginFormModal">
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <button type="submit">Log In</button>
+        </form>
+        <div class="divider">
+          <span>or</span>
+        </div>
+        <div class="oauth-buttons">
+          <button id="googleLogin" class="google-button">
+            <img src="images/GoogleLogo.svg" alt="Google" class="google-icon" />
+            Login with Google
+          </button>
+          <button id="githubLogin" class="github-button">
+            <img src="images/GitHubLogo.svg" alt="GitHub" class="github-icon" />
+            Login with GitHub
+          </button>
+        </div>
+        <p id="loginModalStatus" class="status-message"></p>
+        <button id="closeLoginModal">Close</button>
+      </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal hidden">
+      <div class="modal-content">
+        <!-- <h2>Sign Up</h2> -->
+        <form id="signupFormModal">
+          <input name="username" type="text" placeholder="Username" required />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <input name="password_confirmation" type="password" placeholder="Confirm Password" required />
+          <button type="submit">Sign Up</button>
+        </form>
+        <p id="signupModalStatus" class="status-message"></p>
+        <button id="closeSignupModal">Close</button>
+      </div>
+    </div>
+
+    <!-- scores modal -->
+    <div id="scoresModal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="scoresTitle">Scores</h2>
+        <div class="scores-container">
+          <table id="scoresTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button id="closeScoresModal">Close</button>
+      </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>How to Play</h2>
+        <div class="instructions-text">
+          <p>Buzz around to each flower in order to make some honey.</p>
+          <p>The more flowers you visit, the more honey you will make.</p>
+          <p>But beware; bump into a honeypot and you'll get stuck!</p>
+          <p>Bump into a wall and you'll get squashed!</p>
+        </div>
+        <button id="closeInstructionsModal">Close</button>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="main-footer">
+      <p>&copy; 2025 House of Plough</p>
+    </footer>
+
+    <!-- modal, scripts, etc -->
+    <script src="game.js" type="module"></script>
+    <script src="auth.js" type="module"></script>
+  </body>
+</html>
