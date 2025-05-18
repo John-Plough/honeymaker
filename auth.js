@@ -343,6 +343,20 @@ async function checkAuthStatus() {
   }
 }
 
+// Helper function to clear storage
+function clearStorageAndCookies() {
+  // Clear localStorage
+  localStorage.clear();
+
+  // Clear sessionStorage
+  sessionStorage.clear();
+
+  // Clear cookies
+  document.cookie.split(";").forEach(function (c) {
+    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
+}
+
 // Setup all forms
 document.addEventListener("DOMContentLoaded", () => {
   setupLoginForm("loginFormModal", "loginModalStatus");
@@ -406,6 +420,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (githubLoginButton) {
     githubLoginButton.addEventListener("click", async () => {
       try {
+        // Clear all storage before proceeding
+        clearStorageAndCookies();
+
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
@@ -444,6 +461,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (googleLoginButton) {
     googleLoginButton.addEventListener("click", async () => {
       try {
+        // Clear all storage before proceeding
+        clearStorageAndCookies();
+
         // Create a form to submit
         const form = document.createElement("form");
         form.method = "post";
