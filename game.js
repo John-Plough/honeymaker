@@ -564,7 +564,7 @@ async function gameOver() {
   // Allow modal to be closed after 2 seconds
   setTimeout(() => {
     canCloseModal = true;
-  }, 2000);
+  }, 1000);
 }
 
 // Function to clear the game board
@@ -601,7 +601,7 @@ function clearGameBoard() {
   draw();
 }
 
-// ─── Modal Close ────────────────────────────────────────────────────────────
+// ─── Modal Close ───────────────────────────────────────────────────────────
 
 function closeModal(shouldRestart = false) {
   if (!canCloseModal) return; // Prevent early closing
