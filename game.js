@@ -210,6 +210,14 @@ function updateScore() {
   if (scoreValue) {
     scoreValue.textContent = score;
   }
+
+  // Update honey meter
+  const honeyMeter = document.querySelector(".honey-meter-fill");
+  if (honeyMeter) {
+    // Calculate percentage (max score for full meter is 50)
+    const fillPercentage = Math.min((score / 50) * 100, 100);
+    honeyMeter.style.height = `${fillPercentage}%`;
+  }
 }
 
 // Listen for username updates from auth system

@@ -232,19 +232,27 @@ body {
   color: #666;
 }
 
+/* Game Layout */
+.game-layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 1rem;
+}
+
 /* Game Container */
 .game-container {
   text-align: center;
   background-color: #fff7df;
-  padding: 0.5rem 1rem; /* Reduced horizontal padding */
+  padding: 0.5rem 1rem;
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 1;
   overflow: hidden;
-  width: 570px; /* Increased width */
-  margin: 0 auto; /* Center horizontally */
-  flex: 0 0 auto; /* Don't grow or shrink */
+  width: 570px;
+  margin: 0 auto;
+  flex: 0 0 auto;
 }
 
 /* Game title */
@@ -875,4 +883,11 @@ input:checked + .slider:before {
 
 tr.highlight-score {
   background-color: rgba(46, 125, 50, 0.05);
+}
+
+/* Game board container */
+.game-board-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
