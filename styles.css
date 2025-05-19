@@ -217,6 +217,7 @@ body {
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
+  margin-top: 0.5rem; /* Added margin to create more space */
 }
 
 #loginForm button:hover,
@@ -235,13 +236,15 @@ body {
 .game-container {
   text-align: center;
   background-color: #fff7df;
-  padding: 0.5rem 2rem; /* Reduced top padding from 2rem to 0.5rem */
+  padding: 0.5rem 1rem; /* Reduced horizontal padding */
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 1;
   overflow: hidden;
-  flex: 1;
+  width: 570px; /* Increased width */
+  margin: 0 auto; /* Center horizontally */
+  flex: 0 0 auto; /* Don't grow or shrink */
 }
 
 /* Game title */
@@ -299,7 +302,6 @@ body {
 
 /* Modal Styles */
 .modal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -307,7 +309,7 @@ body {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   opacity: 0;
@@ -317,6 +319,7 @@ body {
 }
 
 .modal.show {
+  display: flex !important;
   opacity: 1;
   pointer-events: auto;
 }
@@ -334,8 +337,20 @@ body {
   gap: 0.25rem;
 }
 
-.modal.show .modal-content {
-  transform: translateY(0);
+/* Specific styles for sign-up modal */
+#signupModal .modal-content {
+  min-width: 350px;
+}
+
+#signupModal form {
+  padding: 0 0.75rem; /* Add padding just to the form for narrower input fields */
+}
+
+#signupFormModal button[type="submit"],
+#loginFormModal button[type="submit"],
+#closeInstructionsModal {
+  width: 120px;
+  margin: 0.5rem auto;
 }
 
 .modal h2 {
@@ -358,11 +373,12 @@ body {
 
 .modal input {
   padding: 0.4rem;
+  margin-bottom: 0.5rem; /* Added space after inputs */
 }
 
 .modal button {
   padding: 0.5rem;
-  margin-top: 0;
+  margin-top: 0.5rem;
   font-size: 1rem;
   background-color: #fff7df;
   color: #333;
@@ -380,6 +396,10 @@ body {
 /* Utility Classes */
 .hidden {
   display: none !important;
+}
+
+.modal:not(.hidden) {
+  display: flex;
 }
 
 /* Global Styles */
@@ -491,6 +511,16 @@ main {
   display: flex;
   flex-direction: column;
   padding-top: 1rem; /* Small gap between header and game */
+  background-image: url("images/hex4.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hide background on splash page */
+body:has(#splashContainer:not(.hidden)) main {
+  background-image: none;
+  background-color: #d7eeee;
 }
 
 /* Instructions Button and Modal */
@@ -520,8 +550,9 @@ main {
 }
 
 .instructions-text {
-  margin: 1.5rem 0;
-  text-align: left;
+  margin: 1.5rem 0 0.5rem;
+  text-align: center;
+  padding: 0 1rem;
 }
 
 .instructions-text p {
@@ -529,6 +560,96 @@ main {
   font-size: 1.1rem;
   line-height: 1.5;
   color: #333;
+  text-align: center;
+}
+
+/* Bee Animation */
+@keyframes flyAcross {
+  0% {
+    transform: translateX(-250px);
+    opacity: 0;
+  }
+  25% {
+    transform: translateX(-175px);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(175px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(250px);
+    opacity: 0;
+  }
+}
+
+@keyframes bobUpDown {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.instruction-bee {
+  display: block;
+  margin: 1rem auto;
+  height: 40px;
+  width: auto;
+  position: relative;
+  left: 0;
+}
+
+/* Wrapper to combine both animations */
+.bee-wrapper {
+  display: inline-block;
+  animation: flyAcross 24s linear forwards;
+}
+
+.bee-wrapper .instruction-bee {
+  animation: bobUpDown 3s ease-in-out infinite;
+  margin: 0;
+}
+
+/* Instructions Modal */
+#instructionsModal .modal-content {
+  min-width: 350px;
+  padding: 1.5rem;
+  overflow: hidden; /* Ensure bee doesn't create scrollbars when flying */
+}
+
+#instructionsModal h2 {
+  text-decoration: underline;
+  margin-bottom: 1rem;
+}
+
+.instructions-text {
+  margin: 1.5rem 0 0.5rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.instructions-text p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #333;
+  text-align: center;
+}
+
+#closeInstructionsModal {
+  width: 120px;
+  margin: 0.5rem auto 0.5rem;
 }
 
 /* Remove the game layout styles since we're not using them anymore */
@@ -744,4 +865,14 @@ input:checked + .slider:before {
 .google-icon {
   width: 18px;
   height: 18px;
+}
+
+/* Score highlighting styles */
+.highlight-score td {
+  color: #2e7d32 !important;
+  font-weight: bold !important;
+}
+
+tr.highlight-score {
+  background-color: rgba(46, 125, 50, 0.05);
 }

@@ -171,9 +171,18 @@ function setupSignupForm(formId, statusId) {
 
       const { user } = await resp.json();
       updateHeaderState(user);
-      showStatusMessage(statusEl, `Welcome ${user.email}! Account created and logged in.`, "success");
       form.reset();
+
+      // Hide signup modal immediately
+      const signupModal = document.getElementById("signupModal");
+      if (signupModal) {
+        signupModal.classList.remove("show");
+        signupModal.classList.add("hidden");
+      }
+
+      // Show game without showing success message
       showGame();
+
       // Reset game state for new user
       if (typeof initGame === "function") {
         initGame();
@@ -219,18 +228,42 @@ const formatDate = (dateString) => {
 };
 
 // Populate scores table
-const populateScoresTable = (scores) => {
+const populateScoresTable = (scores, isPersonal = false) => {
   const tbody = scoresTable.querySelector("tbody");
   tbody.innerHTML = "";
 
+  // Get current username for comparison (only needed for global scores)
+  const usernameElement = document.querySelector(".username");
+  const currentUsername = usernameElement ? usernameElement.textContent.trim() : "";
+
   scores.forEach((score, index) => {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${score.username}</td>
-      <td>${score.value}</td>
-      <td>${formatDate(score.created_at)}</td>
-    `;
+
+    // Create cells
+    const cells = {
+      rank: document.createElement("td"),
+      player: document.createElement("td"),
+      score: document.createElement("td"),
+      date: document.createElement("td"),
+    };
+
+    // Set cell content
+    cells.rank.textContent = index + 1;
+    cells.player.textContent = score.username;
+    cells.score.textContent = score.value;
+    cells.date.textContent = formatDate(score.created_at);
+
+    // Style for global scores - current user's scores only
+    if (!isPersonal && score.username === currentUsername) {
+      row.classList.add("highlight-score");
+      Object.values(cells).forEach((cell) => {
+        cell.style.setProperty("color", "#2e7d32", "important");
+        cell.style.setProperty("font-weight", "bold", "important");
+      });
+    }
+
+    // Append cells to row
+    Object.values(cells).forEach((cell) => row.appendChild(cell));
     tbody.appendChild(row);
   });
 };
@@ -249,7 +282,7 @@ const showPersonalScores = async () => {
     if (response.ok) {
       const scores = await response.json();
       scoresTitle.textContent = "My Top Scores";
-      populateScoresTable(scores);
+      populateScoresTable(scores, true);
       scoresModal.classList.remove("hidden");
       scoresModal.classList.add("show");
     } else {
@@ -274,7 +307,7 @@ const showGlobalScores = async () => {
     if (response.ok) {
       const scores = await response.json();
       scoresTitle.textContent = "All-Time Best Scores";
-      populateScoresTable(scores);
+      populateScoresTable(scores, false);
       scoresModal.classList.remove("hidden");
       scoresModal.classList.add("show");
     } else {

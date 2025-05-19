@@ -47,6 +47,9 @@ const ctx = canvas.getContext("2d");
 const modal = document.getElementById("gameOverModal");
 const finalScoreElement = document.getElementById("finalScore");
 const closeModalButton = document.getElementById("closeModal");
+const scoresTable = document.getElementById("scoresTable");
+const scoresTitle = document.getElementById("scoresTitle");
+const scoresModal = document.getElementById("scoresModal");
 
 canvas.width = 450; // 15 cols × 30px
 canvas.height = 510; // 17 rows × 30px
@@ -91,11 +94,13 @@ const backgroundMusic = new Audio("audio/BuzzingDance.mp3");
 backgroundMusic.loop = true; // Make the music loop
 const flowerSound = new Audio("audio/FlowerSound.mp3");
 const gameOverSound = new Audio("audio/GameOverSound.mp3");
+const secretSound = new Audio("audio/SecretSound.mp3");
 
 // Adjust volume levels
-backgroundMusic.volume = 0.5; // Background music at 50% volume
-flowerSound.volume = 0.2; // Flower sound at 70% volume
-gameOverSound.volume = 0.7; // Game over sound at full volume
+backgroundMusic.volume = 0.2; // Background music at 50% volume
+flowerSound.volume = 0.1; // Flower sound at 70% volume
+gameOverSound.volume = 0.2; // Game over sound at full volume
+secretSound.volume = 0.1; // Secret sound at 30% volume
 
 // Audio control state
 let isMusicEnabled = true;
@@ -115,6 +120,13 @@ document.getElementById("musicToggle").addEventListener("change", (e) => {
 
 document.getElementById("soundEffectsToggle").addEventListener("change", (e) => {
   areSoundEffectsEnabled = e.target.checked;
+});
+
+// Add click handler for secret sound
+document.querySelector(".control-separator").addEventListener("click", () => {
+  if (areSoundEffectsEnabled) {
+    secretSound.play();
+  }
 });
 
 // Update existing audio playing functions
@@ -212,6 +224,35 @@ document.addEventListener("usernameUpdated", (event) => {
 document.addEventListener("DOMContentLoaded", () => {
   // Initial update of the score display
   updateScore();
+
+  // Instructions modal handlers
+  const instructionsModal = document.getElementById("instructionsModal");
+  const instructionsButton = document.getElementById("instructionsButton");
+  const closeInstructionsModal = document.getElementById("closeInstructionsModal");
+
+  if (instructionsButton && instructionsModal) {
+    instructionsButton.addEventListener("click", () => {
+      instructionsModal.classList.remove("hidden");
+      instructionsModal.classList.add("show");
+    });
+  }
+
+  if (closeInstructionsModal && instructionsModal) {
+    closeInstructionsModal.addEventListener("click", () => {
+      instructionsModal.classList.remove("show");
+      instructionsModal.classList.add("hidden");
+    });
+  }
+
+  // Close instructions modal when clicking outside
+  if (instructionsModal) {
+    instructionsModal.addEventListener("click", (event) => {
+      if (event.target === instructionsModal) {
+        instructionsModal.classList.remove("show");
+        instructionsModal.classList.add("hidden");
+      }
+    });
+  }
 });
 
 // ─── Food Generation ─────────────────────────────────────────────────────────
@@ -326,6 +367,14 @@ function gameLoop() {
 }
 
 function handleKeyPress(e) {
+  // Handle Enter key for Game Over modal restart
+  if (e.key === "Enter" && !gameRunning && modal.classList.contains("show") && canCloseModal) {
+    e.preventDefault();
+    modal.classList.remove("show");
+    initGame();
+    return;
+  }
+
   // Handle spacebar for pause
   if (e.code === "Space" && gameStarted && gameRunning) {
     e.preventDefault();
@@ -415,9 +464,12 @@ async function checkPersonalBest(score) {
 
       console.log("Current score:", score);
       console.log("Highest previous score:", highestPreviousScore);
+      console.log("Number of previous scores:", scoreValues.length);
 
-      // Return true if this is the first score or if it's higher than previous scores
-      return scoreValues.length === 0 || score > highestPreviousScore;
+      // Only show "highest score ever" if:
+      // 1. User has at least 3 previous scores
+      // 2. Current score is higher than all previous scores
+      return scoreValues.length >= 3 && score > highestPreviousScore;
     }
     return false;
   } catch (error) {
@@ -443,11 +495,7 @@ async function gameOver() {
   backgroundMusic.currentTime = 0;
   playGameOverSound();
 
-  // Send final score to backend
-  const response = await submitScore(score);
-  console.log("Score submission response:", JSON.stringify(response, null, 2));
-
-  // Check if this is a personal best
+  // Check if this is a personal best BEFORE submitting the new score
   console.log("Checking for personal best...");
   const isPersonalBest = await checkPersonalBest(score);
   console.log("Is personal best?", isPersonalBest);
@@ -459,10 +507,14 @@ async function gameOver() {
     bestScoreMessage.style.color = "#2e7d32";
     bestScoreMessage.style.marginTop = "0.5rem";
     bestScoreMessage.style.fontWeight = "600";
-    bestScoreMessage.id = "personalBestMessage"; // Add an ID for easier debugging
+    bestScoreMessage.id = "personalBestMessage";
     console.log("Inserting personal best message after:", finalScoreElement);
     finalScoreElement.insertAdjacentElement("afterend", bestScoreMessage);
   }
+
+  // Now submit the score to the backend
+  const response = await submitScore(score);
+  console.log("Score submission response:", JSON.stringify(response, null, 2));
 
   // Get global scores to determine rank
   try {
@@ -491,7 +543,7 @@ async function gameOver() {
         rankMessage.style.color = "#2e7d32";
         rankMessage.style.marginTop = "0.5rem";
         rankMessage.style.fontWeight = "600";
-        rankMessage.id = "rankMessage"; // Add an ID for easier debugging
+        rankMessage.id = "rankMessage";
         finalScoreElement.insertAdjacentElement("afterend", rankMessage);
       }
     }
@@ -507,6 +559,40 @@ async function gameOver() {
   }, 2000);
 }
 
+// Function to clear the game board
+function clearGameBoard() {
+  // Clear the canvas
+  ctx.fillStyle = "#d7eeee";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Reset game state
+  snake = [{ x: Math.floor(gridWidth / 2), y: Math.floor(gridHeight / 2) }];
+  food = null;
+  dx = dy = 0;
+  score = 0;
+  gameSpeed = baseSpeed;
+  gameRunning = false;
+  gameStarted = false;
+  isPaused = false;
+
+  // Clear any existing game interval
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+
+  // Reset audio
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+  backgroundMusic.playbackRate = 1.0;
+
+  // Update score display
+  updateScore();
+
+  // Draw the cleared state
+  draw();
+}
+
 // ─── Modal Close ────────────────────────────────────────────────────────────
 
 function closeModal(shouldRestart = false) {
@@ -514,6 +600,8 @@ function closeModal(shouldRestart = false) {
   modal.classList.remove("show");
   if (shouldRestart) {
     initGame();
+  } else {
+    clearGameBoard();
   }
 }
 
@@ -523,29 +611,126 @@ document.addEventListener("keydown", handleKeyPress);
 closeModalButton.addEventListener("click", () => closeModal(true));
 document.getElementById("closeGameOverModal").addEventListener("click", () => closeModal(false));
 
-// Instructions modal handlers
-const instructionsModal = document.getElementById("instructionsModal");
-const instructionsButton = document.getElementById("instructionsButton");
-const closeInstructionsModal = document.getElementById("closeInstructionsModal");
-
-instructionsButton.addEventListener("click", () => {
-  instructionsModal.classList.remove("hidden");
-  instructionsModal.classList.add("show");
-});
-
-closeInstructionsModal.addEventListener("click", () => {
-  instructionsModal.classList.remove("show");
-  instructionsModal.classList.add("hidden");
-});
-
-// Close instructions modal when clicking outside
-instructionsModal.addEventListener("click", (event) => {
-  if (event.target === instructionsModal) {
-    instructionsModal.classList.remove("show");
-    instructionsModal.classList.add("hidden");
-  }
-});
-
 // Initialize game on page load
 initGame();
 draw();
+
+// Format date for display
+const formatDate = (dateString) => {
+  const options = { year: "numeric", month: "short", day: "numeric" };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
+// Populate scores table
+const populateScoresTable = (scores, isPersonal = false) => {
+  const tbody = scoresTable.querySelector("tbody");
+  tbody.innerHTML = "";
+
+  // Get current username for comparison
+  const usernameElement = document.querySelector(".username");
+  const currentUsername = usernameElement ? usernameElement.textContent.trim() : "";
+
+  console.log("Current username for comparison:", currentUsername);
+  console.log("Is personal scores view:", isPersonal);
+
+  // For personal scores, get the most recent score's ID
+  const mostRecentScore = isPersonal && scores.length > 0 ? scores[0] : null;
+  console.log("Most recent score:", mostRecentScore);
+
+  scores.forEach((score, index) => {
+    console.log("Processing score:", score);
+    const row = document.createElement("tr");
+
+    // Create cells
+    const cells = {
+      rank: document.createElement("td"),
+      player: document.createElement("td"),
+      score: document.createElement("td"),
+      date: document.createElement("td"),
+    };
+
+    cells.rank.textContent = index + 1;
+    cells.player.textContent = score.username;
+    cells.score.textContent = score.value;
+    cells.date.textContent = formatDate(score.created_at);
+
+    // Style for personal scores - most recent score
+    if (isPersonal && mostRecentScore && score.id === mostRecentScore.id) {
+      console.log("Applying most recent score styles to:", score.id);
+      row.classList.add("highlight-score");
+      Object.values(cells).forEach((cell) => {
+        cell.style.setProperty("color", "#2e7d32", "important");
+        cell.style.setProperty("font-weight", "bold", "important");
+      });
+    }
+
+    // Style for global scores - current user's scores
+    if (
+      !isPersonal &&
+      score.username &&
+      currentUsername &&
+      score.username.toLowerCase() === currentUsername.toLowerCase()
+    ) {
+      console.log("Applying current user styles to:", score.username);
+      row.classList.add("highlight-score");
+      Object.values(cells).forEach((cell) => {
+        cell.style.setProperty("color", "#2e7d32", "important");
+        cell.style.setProperty("font-weight", "bold", "important");
+      });
+    }
+
+    // Append cells to row
+    Object.values(cells).forEach((cell) => row.appendChild(cell));
+    tbody.appendChild(row);
+  });
+};
+
+// Update the showPersonalScores function
+const showPersonalScores = async () => {
+  try {
+    const csrfToken = getCookie("CSRF-TOKEN");
+    const response = await fetch(`${API_BASE}/scores/personal`, {
+      credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
+    });
+
+    if (response.ok) {
+      const scores = await response.json();
+      scoresTitle.textContent = "My Top Scores";
+      populateScoresTable(scores, true); // Pass true for personal scores
+      scoresModal.classList.remove("hidden");
+      scoresModal.classList.add("show");
+    } else {
+      console.error("Failed to fetch personal scores");
+    }
+  } catch (error) {
+    console.error("Error fetching personal scores:", error);
+  }
+};
+
+// Update the showGlobalScores function
+const showGlobalScores = async () => {
+  try {
+    const csrfToken = getCookie("CSRF-TOKEN");
+    const response = await fetch(`${API_BASE}/scores/global`, {
+      credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
+    });
+
+    if (response.ok) {
+      const scores = await response.json();
+      scoresTitle.textContent = "All-Time Best Scores";
+      populateScoresTable(scores, false); // Pass false for global scores
+      scoresModal.classList.remove("hidden");
+      scoresModal.classList.add("show");
+    } else {
+      console.error("Failed to fetch global scores");
+    }
+  } catch (error) {
+    console.error("Error fetching global scores:", error);
+  }
+};
