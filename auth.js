@@ -85,6 +85,11 @@ function getCookie(name) {
 
 // Helper function to show status message
 function showStatusMessage(element, message, type) {
+  if (!element) {
+    console.error("Status element not found:", message);
+    return;
+  }
+
   element.textContent = message;
   element.classList.remove("error", "success");
   element.classList.add("status-message", type, "show");
@@ -107,13 +112,15 @@ function setupLoginForm(formId, statusId) {
     const statusEl = document.getElementById(statusId);
 
     try {
-      const resp = await authFetch("/login.json", {
+      const resp = await authFetch("/login", {
         email: form.email.value,
         password: form.password.value,
       });
 
       if (!resp.ok) {
-        showStatusMessage(statusEl, "Email or password not recognized", "error");
+        const data = await resp.json();
+        const errorMessage = data.error || "Email or password not recognized";
+        showStatusMessage(statusEl, errorMessage, "error");
         return;
       }
 
@@ -155,7 +162,7 @@ function setupSignupForm(formId, statusId) {
     }
 
     try {
-      const resp = await authFetch("/users.json", {
+      const resp = await authFetch("/users", {
         username: form.username.value,
         email: form.email.value,
         password: form.password.value,
@@ -198,23 +205,20 @@ function setupSignupForm(formId, statusId) {
 async function handleLogout() {
   try {
     const csrfToken = getCookie("CSRF-TOKEN");
-    const resp = await fetch(`${API_BASE}/logout.json`, {
+    const resp = await fetch(`${API_BASE}/logout`, {
       method: "DELETE",
-      credentials: "include",
       headers: {
         "X-CSRF-Token": csrfToken,
       },
+      credentials: "include",
     });
 
     if (resp.ok) {
       updateHeaderState(null);
-      // Hide game and show splash screen
-      gameContainer.classList.add("hidden");
-      document.getElementById("splashContainer").classList.remove("hidden");
-      loggedOutButtons.classList.remove("hidden");
-      loggedInButtons.classList.add("hidden");
-    } else {
-      console.error("Logout failed:", await resp.text());
+      // Reset game state
+      if (typeof initGame === "function") {
+        initGame();
+      }
     }
   } catch (err) {
     console.error("Logout error:", err);
