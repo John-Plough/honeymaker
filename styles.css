@@ -361,6 +361,12 @@ body {
   margin: 0.5rem auto;
 }
 
+#closeSignupModal {
+  width: 120px;
+  margin: 0.5rem auto;
+  display: block;
+}
+
 .modal h2 {
   color: #333;
   margin-bottom: 0.25rem;

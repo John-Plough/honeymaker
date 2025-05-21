@@ -67,7 +67,10 @@ async function authFetch(endpoint, data) {
     "X-CSRF-Token": csrfToken,
   };
 
-  const resp = await fetch(`${API_BASE}${endpoint}`, {
+  // Append .json to the endpoint for POST requests
+  const formattedEndpoint = data ? `${endpoint}.json` : endpoint;
+
+  const resp = await fetch(`${API_BASE}${formattedEndpoint}`, {
     method: "POST",
     headers: headers,
     credentials: "include",
