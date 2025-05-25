@@ -257,12 +257,16 @@ const populateScoresTable = (scores, isPersonal = false) => {
 
     // Set cell content
     cells.rank.textContent = index + 1;
-    cells.player.textContent = score.username;
+    // Use score.user.username if available, otherwise fallback to score.username
+    cells.player.textContent = score.user && score.user.username ? score.user.username : score.username || "";
     cells.score.textContent = score.value;
     cells.date.textContent = formatDate(score.created_at);
 
     // Style for global scores - current user's scores only
-    if (!isPersonal && score.username === currentUsername) {
+    if (
+      !isPersonal &&
+      ((score.user && score.user.username === currentUsername) || score.username === currentUsername)
+    ) {
       row.classList.add("highlight-score");
       Object.values(cells).forEach((cell) => {
         cell.style.setProperty("color", "#2e7d32", "important");
