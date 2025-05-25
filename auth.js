@@ -62,6 +62,7 @@ function showGame() {
 // Helper function for API calls
 async function authFetch(endpoint, data) {
   const csrfToken = getCookie("CSRF-TOKEN");
+  console.log("csrfToken", csrfToken);
   const headers = {
     "Content-Type": "application/json",
     "X-CSRF-Token": csrfToken,
