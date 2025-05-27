@@ -64,6 +64,9 @@ async function authFetch(endpoint, data) {
   const resp = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
   });
   return resp;
