@@ -11,32 +11,30 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
-async function submitScore(scoreValue) {
-  try {
-    const csrfToken = getCookie("CSRF-TOKEN");
-    const headers = {
-      "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken,
-    };
+// Helper function for API calls
+async function apiFetch(endpoint, data) {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+  return response;
+}
 
-    const resp = await fetch(`${API_BASE}/scores`, {
+// Save score to database
+async function saveScore(score) {
+  try {
+    const response = await fetch(`${API_BASE}/scores`, {
       method: "POST",
-      headers: headers,
       credentials: "include",
-      body: JSON.stringify({ score: { value: scoreValue } }),
+      body: JSON.stringify({ score }),
     });
 
-    const data = await resp.json();
-
-    if (!resp.ok) {
-      console.error("Failed to save score", data.error);
-      return null;
+    if (!response.ok) {
+      console.error("Failed to save score:", response.status);
     }
-
-    return data;
   } catch (error) {
     console.error("Error saving score:", error);
-    return null;
   }
 }
 
@@ -521,7 +519,7 @@ async function gameOver() {
   }
 
   // Now submit the score to the backend
-  const response = await submitScore(score);
+  const response = await saveScore(score);
   console.log("Score submission response:", JSON.stringify(response, null, 2));
 
   // Get global scores to determine rank

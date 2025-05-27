@@ -61,30 +61,12 @@ function showGame() {
 
 // Helper function for API calls
 async function authFetch(endpoint, data) {
-  const csrfToken = getCookie("CSRF-TOKEN");
-  console.log("csrfToken", csrfToken);
-  const headers = {
-    "Content-Type": "application/json",
-    "X-CSRF-Token": csrfToken,
-  };
-
-  // Append .json to the endpoint for POST requests
-  const formattedEndpoint = data ? `${endpoint}.json` : endpoint;
-
-  const resp = await fetch(`${API_BASE}${formattedEndpoint}`, {
+  const resp = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
-    headers: headers,
     credentials: "include",
     body: JSON.stringify(data),
   });
   return resp;
-}
-
-// Helper function to get cookie value
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
 // Helper function to show status message
@@ -132,13 +114,17 @@ function setupLoginForm(formId, statusId) {
       updateHeaderState(user);
       form.reset();
 
-      // Immediately hide login modal and show game
+      // Hide login modal
       const loginModal = document.getElementById("loginModal");
       if (loginModal) {
         loginModal.classList.remove("show");
         loginModal.classList.add("hidden");
       }
-      showGame();
+
+      // Show game and hide splash screen
+      document.querySelector(".game-container").classList.remove("hidden");
+      document.getElementById("splashContainer").classList.add("hidden");
+
       // Reset game state for new user
       if (typeof initGame === "function") {
         initGame();
@@ -184,15 +170,16 @@ function setupSignupForm(formId, statusId) {
       updateHeaderState(user);
       form.reset();
 
-      // Hide signup modal immediately
+      // Hide signup modal
       const signupModal = document.getElementById("signupModal");
       if (signupModal) {
         signupModal.classList.remove("show");
         signupModal.classList.add("hidden");
       }
 
-      // Show game without showing success message
-      showGame();
+      // Show game and hide splash screen
+      document.querySelector(".game-container").classList.remove("hidden");
+      document.getElementById("splashContainer").classList.add("hidden");
 
       // Reset game state for new user
       if (typeof initGame === "function") {
@@ -208,24 +195,25 @@ function setupSignupForm(formId, statusId) {
 // Logout handler
 async function handleLogout() {
   try {
-    const csrfToken = getCookie("CSRF-TOKEN");
-    const resp = await fetch(`${API_BASE}/logout`, {
+    const response = await fetch(`${API_BASE}/logout`, {
       method: "DELETE",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
       credentials: "include",
     });
 
-    if (resp.ok) {
+    if (response.ok) {
       updateHeaderState(null);
-      // Reset game state
+      // Hide game and show splash screen
+      document.querySelector(".game-container").classList.add("hidden");
+      document.getElementById("splashContainer").classList.remove("hidden");
+      // Clear any game state
       if (typeof initGame === "function") {
         initGame();
       }
+    } else {
+      console.error("Logout failed:", response.status);
     }
-  } catch (err) {
-    console.error("Logout error:", err);
+  } catch (error) {
+    console.error("Logout error:", error);
   }
 }
 
@@ -283,12 +271,9 @@ const populateScoresTable = (scores, isPersonal = false) => {
 // Fetch and display personal scores
 const showPersonalScores = async () => {
   try {
-    const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/scores/personal`, {
+      method: "GET",
       credentials: "include",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
     });
 
     if (response.ok) {
@@ -298,7 +283,7 @@ const showPersonalScores = async () => {
       scoresModal.classList.remove("hidden");
       scoresModal.classList.add("show");
     } else {
-      console.error("Failed to fetch personal scores");
+      console.error("Failed to fetch personal scores:", response.status);
     }
   } catch (error) {
     console.error("Error fetching personal scores:", error);
@@ -308,12 +293,8 @@ const showPersonalScores = async () => {
 // Fetch and display global scores
 const showGlobalScores = async () => {
   try {
-    const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/scores/global`, {
       credentials: "include",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
     });
 
     if (response.ok) {
@@ -349,25 +330,27 @@ scoresModal.addEventListener("click", (e) => {
 // Add this function before the DOMContentLoaded event listener
 async function checkAuthStatus() {
   try {
-    const csrfToken = getCookie("CSRF-TOKEN");
     const response = await fetch(`${API_BASE}/auth/check`, {
       credentials: "include",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
     });
 
     if (response.ok) {
       const { user } = await response.json();
       updateHeaderState(user);
-      showGame();
+      // Show game and hide splash screen
+      document.querySelector(".game-container").classList.remove("hidden");
+      document.getElementById("splashContainer").classList.add("hidden");
     } else if (response.status === 401) {
-      // User is not logged in - this is normal, just update UI accordingly
+      // User is not logged in - show splash screen and hide game
       updateHeaderState(null);
-      // Don't show game, stay on splash screen
+      document.querySelector(".game-container").classList.add("hidden");
+      document.getElementById("splashContainer").classList.remove("hidden");
     } else {
       console.error("Unexpected error checking auth status:", response.status);
       updateHeaderState(null);
+      // On error, default to showing splash screen
+      document.querySelector(".game-container").classList.add("hidden");
+      document.getElementById("splashContainer").classList.remove("hidden");
     }
   } catch (error) {
     // Only log network-level errors
@@ -375,6 +358,9 @@ async function checkAuthStatus() {
       console.error("Error checking auth status:", error);
     }
     updateHeaderState(null);
+    // On error, default to showing splash screen
+    document.querySelector(".game-container").classList.add("hidden");
+    document.getElementById("splashContainer").classList.remove("hidden");
   }
 }
 
@@ -445,21 +431,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const form = document.createElement("form");
         form.method = "post";
         form.action = `${API_BASE}/auth/github`;
-
-        // Add CSRF token
-        const csrfInput = document.createElement("input");
-        csrfInput.type = "hidden";
-        csrfInput.name = "authenticity_token";
-        csrfInput.value = getCookie("CSRF-TOKEN");
-        form.appendChild(csrfInput);
-
-        // Add it to the document body
         document.body.appendChild(form);
-
-        // Submit the form
         form.submit();
-
-        // Clean up
         document.body.removeChild(form);
       } catch (error) {
         console.error("GitHub login error:", error);
@@ -476,21 +449,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const form = document.createElement("form");
         form.method = "post";
         form.action = `${API_BASE}/auth/google_oauth2`;
-
-        // Add CSRF token
-        const csrfInput = document.createElement("input");
-        csrfInput.type = "hidden";
-        csrfInput.name = "authenticity_token";
-        csrfInput.value = getCookie("CSRF-TOKEN");
-        form.appendChild(csrfInput);
-
-        // Add it to the document body
         document.body.appendChild(form);
-
-        // Submit the form
         form.submit();
-
-        // Clean up
         document.body.removeChild(form);
       } catch (error) {
         console.error("Google login error:", error);

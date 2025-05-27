@@ -151,18 +151,35 @@ body {
   bottom: 50px; /* Height of footer */
   left: 0;
   right: 0;
-  background-image: url("images/Honeymaker.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: top center;
+  background-color: #d7eeee; /* Fallback color */
+  background-image: url("images/hex4.jpg");
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+#splashContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("images/Honeymaker.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 1;
 }
 
 /* Auth Container */
 #authContainer {
+  position: relative;
+  z-index: 2; /* Place auth container above the honeymaker image */
   display: flex;
   gap: 2rem;
   background-color: rgba(255, 255, 255, 0.95);
@@ -354,14 +371,23 @@ body {
   padding: 0 0.75rem; /* Add padding just to the form for narrower input fields */
 }
 
+/* Update modal button styles */
 #signupFormModal button[type="submit"],
-#loginFormModal button[type="submit"],
-#closeInstructionsModal {
+#loginFormModal button[type="submit"] {
   width: 120px;
   margin: 0.5rem auto;
 }
 
-#closeSignupModal {
+/* Update close button styles for auth modals */
+#closeSignupModal,
+#closeLoginModal {
+  width: 120px;
+  margin: 0.5rem auto;
+  display: block;
+}
+
+/* Update close button styles for scores modal */
+#closeScoresModal {
   width: 120px;
   margin: 0.5rem auto;
   display: block;
@@ -797,8 +823,9 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+/* Update oauth buttons container spacing */
 .oauth-buttons {
-  margin: 1rem 0;
+  margin: 1rem 0 0.5rem; /* Reduced bottom margin */
   display: flex;
   flex-direction: column;
   gap: 8px;
