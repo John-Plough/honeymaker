@@ -27,14 +27,21 @@ async function saveScore(score) {
     const response = await fetch(`${API_BASE}/scores`, {
       method: "POST",
       credentials: "include",
-      body: JSON.stringify({ score }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ score: { value: score } }),
     });
 
     if (!response.ok) {
       console.error("Failed to save score:", response.status);
+      return null;
     }
+
+    return await response.json();
   } catch (error) {
     console.error("Error saving score:", error);
+    return null;
   }
 }
 
